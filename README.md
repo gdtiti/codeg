@@ -238,6 +238,56 @@ docker run -d -p 3080:3080 \
 
 The Docker image uses a multi-stage build (Node.js + Rust → slim Debian runtime) and includes `git` and `ssh` for repository operations. Data is persisted in the `/data` volume. You can optionally mount project directories to access local repos from within the container.
 
+#### Option 4.1: Deploy to Hugging Face Spaces from GHCR
+
+This repository now includes a GitHub Actions workflow that can:
+
+1. build the server image on GitHub,
+2. push it to GitHub Container Registry (`ghcr.io`),
+3. sync a lightweight Docker Space repository to Hugging Face.
+
+Files involved:
+
+- `.github/workflows/deploy-hf-space.yml`
+- `deploy/huggingface-space/README.md`
+- `deploy/huggingface-space/Dockerfile.template`
+
+Required GitHub repository secrets:
+
+| Secret | Purpose |
+| --- | --- |
+| `HF_TOKEN` | Push the generated Docker Space repo to Hugging Face |
+| `HF_SPACE_ID` | Target Space ID, for example `your-name/codeg` |
+
+Important:
+
+- The GHCR image used by Hugging Face must be pullable by the Space build. If the package is private, make it public or switch to a direct Space build flow.
+- The workflow deploys the Space from the `main` branch and uses an immutable image tag based on the Git commit SHA.
+
+#### Option 4.2: Persist `/data` through a Hugging Face dataset
+
+The container entrypoint supports syncing server state to a dataset repository with `huggingface_hub`.
+
+Runtime environment variables:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `HF_TOKEN` | *(unset)* | Hugging Face token used to read/write the dataset |
+| `HF_DATASET_REPO_ID` | *(unset)* | Dataset repo ID, for example `your-name/codeg-data` |
+| `HF_DATASET_REMOTE_DIR` | *(root)* | Optional subdirectory in the dataset repo |
+| `HF_DATASET_SYNC_INTERVAL` | `300` | Sync interval in seconds; `0` disables background sync |
+| `HF_DATASET_FORCE_PULL` | `false` | Force dataset restore on startup even if local files already exist |
+| `HF_DATASET_INCLUDE_TOKENS` | `false` | Also sync `tokens.json`; keep this disabled unless you explicitly want remote token persistence |
+| `HF_DATASET_PRIVATE` | `true` | Used when the dataset repo is created automatically on first upload |
+
+What gets synced by default:
+
+- `codeg.db` (using a SQLite backup snapshot before upload)
+
+Optional:
+
+- `tokens.json` when `HF_DATASET_INCLUDE_TOKENS=true`
+
 #### Option 5: Build from source
 
 ```bash

@@ -1,0 +1,8 @@
+FROM __GHCR_IMAGE__
+
+ENV CODEG_PORT=7860
+ENV CODEG_HOST=0.0.0.0
+
+RUN mkdir -p /data && chmod 0777 /data
+
+EXPOSE 7860
