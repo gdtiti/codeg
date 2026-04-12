@@ -111,7 +111,35 @@
       "light": "Clair",
       "dark": "Sombre",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "Couleur du thème",
+      "sectionDescription": "Choisissez une palette pour les accents, les boutons et les surlignages.",
+      "current": "Couleur actuelle : {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "Zoom de la fenêtre",
+      "sectionDescription": "Met à l'échelle toute l'interface. S'applique immédiatement et est enregistré par appareil.",
+      "placeholder": "Sélectionnez le niveau de zoom",
+      "default": "Par défaut",
+      "current": "Zoom actuel : {zoom}%"
+    },
+    "resetToDefaults": "Réinitialiser",
+    "resetHint": "Réinitialise la couleur du thème et le zoom de la fenêtre."
   },
   "SystemSettings": {
     "loading": "Chargement...",
@@ -144,6 +172,7 @@
     "checking": "Vérification...",
     "checkUpdate": "Rechercher les mises à jour",
     "updating": "Installation...",
+    "downloading": "Téléchargement...",
     "upgradeTo": "Mettre à jour vers v{version}",
     "foundUpdate": "Nouvelle version v{version} trouvée",
     "alreadyLatest": "Vous utilisez déjà la dernière version",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Sélectionner Reasoning Effort",
       "enableWebsocket": "Activer WebSocket",
       "enableWebsocketAria": "Activer WebSocket pour Codex Provider",
+      "enableSkills": "Activer Skills",
+      "enableSkillsAria": "Activer Skills pour Codex",
       "authJsonNative": "auth.json (natif)",
       "configTomlNative": "config.toml (natif)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Configurez le fournisseur API et les identifiants Cline. Les paramètres sont enregistrés dans ~/.cline/data/."
+    },
+    "opencodePlugins": {
+      "title": "Plugins OpenCode",
+      "declared": "Plugins déclarés",
+      "noPlugins": "Aucun plugin déclaré dans opencode.json",
+      "status": {
+        "installed": "Installé",
+        "missing": "Non installé"
+      },
+      "installAll": "Installer tous les manquants",
+      "pinVersions": "Fixer les versions @latest",
+      "install": "Installer",
+      "uninstall": "Désinstaller",
+      "refresh": "Actualiser",
+      "success": "Tous les plugins ont été installés avec succès",
+      "failed": "L'opération du plugin a échoué"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "Connecté",
         "connecting": "Connexion...",
-        "downloading": "Téléchargement...",
         "prompting": "Réponse...",
         "error": "Erreur de connexion",
         "disconnected": "Déconnecté",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} n'est pas disponible sur la plateforme actuelle.",
           "sdkMissing": "Le SDK de {agent} n'est pas installé"
         },
+        "backendErrors": {
+          "initializeTimeout": "Le handshake de connexion de {agent} a expiré (aucune réponse après 60 secondes). Ouvrez Paramètres pour vérifier la configuration de l'agent et du réseau.",
+          "processExited": "Le processus {agent} s'est arrêté de manière inattendue.",
+          "spawnFailed": "Impossible de démarrer {agent} : {message}",
+          "downloadFailed": "Échec du téléchargement de {agent} : {message}"
+        },
         "unableReadAgentConfig": "Impossible de lire la configuration de l'agent : {message}",
-        "autoLinkFailedTitle": "Échec de l'auto-liaison de {agent}",
-        "preflightCheckFailedDefault": "Les vérifications préalables ont échoué. Vérifiez les paramètres des agents.",
-        "preflightFailedTitle": "Échec de la vérification préalable de {agent}",
-        "autoLinkPreflightFailed": "Échec de la vérification préalable de l'auto-liaison : {message}",
         "connectFailedTitle": "Échec de la connexion de {agent}",
         "toolFallbackTitle": "Outil",
         "eventErrorTitle": "Erreur de l'agent",

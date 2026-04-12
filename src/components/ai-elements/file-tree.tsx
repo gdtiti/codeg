@@ -89,7 +89,7 @@ export const FileTree = ({
         role="tree"
         {...props}
       >
-        <div className="w-max min-w-full p-2">{children}</div>
+        <div className="w-max min-w-full">{children}</div>
       </div>
     </FileTreeContext.Provider>
   )

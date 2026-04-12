@@ -4,8 +4,8 @@ use std::sync::Arc;
 use axum::{extract::Extension, Json};
 use serde::Deserialize;
 
+use crate::acp::opencode_plugins::PluginCheckSummary;
 use crate::acp::preflight::PreflightResult;
-use crate::acp::registry;
 use crate::acp::types::{
     AcpAgentInfo, AcpAgentStatus, AgentSkillContent, AgentSkillLayout, AgentSkillScope,
     AgentSkillsListResult, ConnectionInfo, ForkResultInfo,
@@ -57,7 +57,6 @@ pub async fn acp_connect(
 ) -> Result<Json<String>, AppCommandError> {
     let db = &state.db;
     let manager = &state.connection_manager;
-    let meta = registry::get_agent_meta(params.agent_type);
 
     let setting = agent_setting_service::get_by_agent_type(&db.conn, params.agent_type)
         .await
@@ -93,14 +92,11 @@ pub async fn acp_connect(
         runtime_env.insert("OPENCLAW_RESET_SESSION".into(), "1".into());
     }
 
-    if let registry::AgentDistribution::Npx { cmd, .. } = meta.distribution {
-        if !acp_commands::is_cmd_available(cmd) {
-            return Err(AppCommandError::task_execution_failed(format!(
-                "{} SDK is not installed. Please install it in Agent Settings.",
-                meta.name
-            )));
-        }
-    }
+    // Guard: the session page must never trigger a download or install.
+    // If the agent isn't ready, return SdkNotInstalled here so the frontend
+    // can prompt the user to install it from Agent Settings.
+    acp_commands::verify_agent_installed(params.agent_type)
+        .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
 
     let emitter = state.emitter.clone();
     let connection_id = manager
@@ -463,12 +459,19 @@ pub async fn acp_update_agent_config(
     Ok(Json(()))
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AcpDownloadAgentBinaryParams {
+    pub agent_type: AgentType,
+    pub task_id: String,
+}
+
 pub async fn acp_download_agent_binary(
     Extension(state): Extension<Arc<AppState>>,
-    Json(params): Json<AgentTypeParams>,
+    Json(params): Json<AcpDownloadAgentBinaryParams>,
 ) -> Result<Json<()>, AppCommandError> {
     let emitter = state.emitter.clone();
-    acp_commands::acp_download_agent_binary_core(params.agent_type, &emitter)
+    acp_commands::acp_download_agent_binary_core(params.agent_type, params.task_id, &emitter)
         .await
         .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
     Ok(Json(()))
@@ -491,6 +494,7 @@ pub async fn acp_detect_agent_local_version(
 pub struct AcpPrepareNpxAgentParams {
     pub agent_type: AgentType,
     pub registry_version: Option<String>,
+    pub task_id: String,
 }
 
 pub async fn acp_prepare_npx_agent(
@@ -502,6 +506,7 @@ pub async fn acp_prepare_npx_agent(
     let result = acp_commands::acp_prepare_npx_agent_core(
         params.agent_type,
         params.registry_version,
+        params.task_id,
         db,
         &emitter,
     )
@@ -510,13 +515,20 @@ pub async fn acp_prepare_npx_agent(
     Ok(Json(result))
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AcpUninstallAgentParams {
+    pub agent_type: AgentType,
+    pub task_id: String,
+}
+
 pub async fn acp_uninstall_agent(
     Extension(state): Extension<Arc<AppState>>,
-    Json(params): Json<AgentTypeParams>,
+    Json(params): Json<AcpUninstallAgentParams>,
 ) -> Result<Json<()>, AppCommandError> {
     let db = &state.db;
     let emitter = state.emitter.clone();
-    acp_commands::acp_uninstall_agent_core(params.agent_type, db, &emitter)
+    acp_commands::acp_uninstall_agent_core(params.agent_type, params.task_id, db, &emitter)
         .await
         .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
     Ok(Json(()))
@@ -538,4 +550,44 @@ pub async fn acp_reorder_agents(
         .await
         .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
     Ok(Json(()))
+}
+
+pub async fn opencode_list_plugins() -> Result<Json<PluginCheckSummary>, AppCommandError> {
+    let result = acp_commands::opencode_list_plugins_core()
+        .await
+        .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
+    Ok(Json(result))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpencodeInstallPluginsParams {
+    pub names: Option<Vec<String>>,
+    pub task_id: String,
+}
+
+pub async fn opencode_install_plugins(
+    Extension(state): Extension<Arc<AppState>>,
+    Json(params): Json<OpencodeInstallPluginsParams>,
+) -> Result<Json<()>, AppCommandError> {
+    let emitter = crate::web::event_bridge::EventEmitter::WebOnly(state.event_broadcaster.clone());
+    acp_commands::opencode_install_plugins_core(params.names, params.task_id, &emitter)
+        .await
+        .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
+    Ok(Json(()))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpencodeUninstallPluginParams {
+    pub name: String,
+}
+
+pub async fn opencode_uninstall_plugin(
+    Json(params): Json<OpencodeUninstallPluginParams>,
+) -> Result<Json<PluginCheckSummary>, AppCommandError> {
+    let result = acp_commands::opencode_uninstall_plugin_core(params.name)
+        .await
+        .map_err(|e| AppCommandError::task_execution_failed(e.to_string()))?;
+    Ok(Json(result))
 }

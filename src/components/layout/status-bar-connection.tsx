@@ -19,7 +19,6 @@ import { cn } from "@/lib/utils"
 type ConnectionStatusLabelKey =
   | "connected"
   | "connecting"
-  | "downloading"
   | "prompting"
   | "error"
 
@@ -31,10 +30,6 @@ const STATUS_STYLE: Record<
   connecting: {
     className: "opacity-100 animate-pulse",
     labelKey: "connecting",
-  },
-  downloading: {
-    className: "opacity-100 animate-pulse",
-    labelKey: "downloading",
   },
   prompting: {
     className: "opacity-100 animate-pulse",

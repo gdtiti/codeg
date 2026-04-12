@@ -50,6 +50,9 @@ pub enum EventEmitter {
     #[cfg(feature = "tauri-runtime")]
     Tauri(tauri::AppHandle),
     WebOnly(Arc<WebEventBroadcaster>),
+    /// Silent no-op emitter — drops all events. Used when streaming progress
+    /// is not needed (e.g. legacy non-streaming call paths).
+    Noop,
 }
 
 /// Unified event emission: sends to both Tauri webview and Web clients (if applicable).
@@ -70,5 +73,6 @@ pub fn emit_event(
         EventEmitter::WebOnly(broadcaster) => {
             broadcaster.send(event, &payload);
         }
+        EventEmitter::Noop => {}
     }
 }

@@ -175,8 +175,12 @@ pub fn build_router(state: Arc<AppState>, token: String, static_dir: std::path::
         .route("/acp_read_agent_skill", post(handlers::acp::acp_read_agent_skill))
         .route("/acp_save_agent_skill", post(handlers::acp::acp_save_agent_skill))
         .route("/acp_delete_agent_skill", post(handlers::acp::acp_delete_agent_skill))
+        .route("/opencode_list_plugins", post(handlers::acp::opencode_list_plugins))
+        .route("/opencode_install_plugins", post(handlers::acp::opencode_install_plugins))
+        .route("/opencode_uninstall_plugin", post(handlers::acp::opencode_uninstall_plugin))
         // ─── Experts ───
         .route("/experts_list", post(handlers::experts::experts_list))
+        .route("/experts_list_for_agent", post(handlers::experts::experts_list_for_agent))
         .route("/experts_get_install_status", post(handlers::experts::experts_get_install_status))
         .route("/experts_link_to_agent", post(handlers::experts::experts_link_to_agent))
         .route("/experts_unlink_from_agent", post(handlers::experts::experts_unlink_from_agent))

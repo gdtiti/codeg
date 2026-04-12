@@ -8,6 +8,9 @@ import { getMessagesForLocale } from "@/i18n/messages"
 import { resolveRequestLocale } from "@/i18n/resolve-request-locale"
 import { ThemeProvider } from "@/components/theme-provider"
 import { toIntlLocale } from "@/lib/i18n"
+import { APPEARANCE_INIT_SCRIPT } from "@/lib/appearance-script"
+import { AppearanceProvider } from "@/components/appearance-provider"
+import { OverlayScrollbarsInit } from "@/components/overlay-scrollbars-init"
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -48,6 +51,8 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        {/* Apply appearance preferences (theme color + zoom) before first paint to prevent FOUC */}
+        <script dangerouslySetInnerHTML={{ __html: APPEARANCE_INIT_SCRIPT }} />
         {/* Suppress benign ResizeObserver loop warnings (W3C spec §3.3) */}
         <script>{`window.addEventListener("error",function(e){if(e.message&&e.message.indexOf("ResizeObserver")!==-1){e.stopImmediatePropagation();e.preventDefault()}});window.onerror=function(m){if(typeof m==="string"&&m.indexOf("ResizeObserver")!==-1)return true}`}</script>
         <NextIntlClientProvider
@@ -64,7 +69,10 @@ export default async function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <AppearanceProvider>
+                <OverlayScrollbarsInit />
+                {children}
+              </AppearanceProvider>
             </ThemeProvider>
           </AppI18nProvider>
         </NextIntlClientProvider>

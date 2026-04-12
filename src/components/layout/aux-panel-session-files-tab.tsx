@@ -18,6 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 
 function isRemovedFileDiff(diff: string | null): boolean {
@@ -290,9 +291,9 @@ export function SessionFilesTab() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin">
+      <ScrollArea className="flex-1 min-h-0 px-2">
         <SessionFilesContent conversationId={conversationId} />
-      </div>
+      </ScrollArea>
     </div>
   )
 }

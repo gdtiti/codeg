@@ -39,7 +39,14 @@ import {
   normalizeAppUpdateError,
   relaunchApp,
 } from "@/lib/updater"
+import type { DownloadEvent } from "@/lib/updater"
 import { APP_LOCALES } from "@/lib/i18n"
+
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 const PROXY_EXAMPLE = "http://127.0.0.1:7890"
 const APP_LANGUAGE_VALUES = APP_LOCALES
@@ -71,6 +78,11 @@ export function SystemNetworkSettings() {
   const [installingUpdate, setInstallingUpdate] = useState(false)
   const [updateError, setUpdateError] = useState<string | null>(null)
   const [lastCheckedAt, setLastCheckedAt] = useState<Date | null>(null)
+  const [downloadProgress, setDownloadProgress] = useState<{
+    downloaded: number
+    total: number | null
+    phase: "downloading" | "installing"
+  } | null>(null)
 
   const [appLanguage, setAppLanguage] = useState<LanguageSelectValue>(
     languageSettings.mode === "system" ? "system" : languageSettings.language
@@ -273,9 +285,37 @@ export function SystemNetworkSettings() {
 
     setInstallingUpdate(true)
     setUpdateError(null)
+    setDownloadProgress(null)
+
+    let downloaded = 0
 
     try {
-      await installAppUpdate(availableUpdate)
+      await installAppUpdate(availableUpdate, (event: DownloadEvent) => {
+        switch (event.event) {
+          case "Started":
+            setDownloadProgress({
+              downloaded: 0,
+              total: event.data.contentLength ?? null,
+              phase: "downloading",
+            })
+            break
+          case "Progress":
+            downloaded += event.data.chunkLength
+            setDownloadProgress((prev) => ({
+              downloaded,
+              total: prev?.total ?? null,
+              phase: "downloading",
+            }))
+            break
+          case "Finished":
+            setDownloadProgress((prev) => ({
+              downloaded: prev?.downloaded ?? downloaded,
+              total: prev?.total ?? null,
+              phase: "installing",
+            }))
+            break
+        }
+      })
       toast.success(t("installSuccess"))
       await relaunchApp()
     } catch (err) {
@@ -285,6 +325,7 @@ export function SystemNetworkSettings() {
       console.error("[Settings] install app update failed:", err)
     } finally {
       setInstallingUpdate(false)
+      setDownloadProgress(null)
     }
   }, [availableUpdate, formatUpdateError, t])
 
@@ -389,8 +430,37 @@ export function SystemNetworkSettings() {
               </p>
             )}
 
-            {updateStatusMessage && (
+            {updateStatusMessage && !downloadProgress && (
               <p className="text-muted-foreground">{updateStatusMessage}</p>
+            )}
+
+            {downloadProgress && (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-muted-foreground">
+                  <span>
+                    {downloadProgress.phase === "downloading"
+                      ? t("downloading")
+                      : t("updating")}
+                  </span>
+                  <span>
+                    {formatBytes(downloadProgress.downloaded)}
+                    {downloadProgress.total
+                      ? ` / ${formatBytes(downloadProgress.total)}`
+                      : ""}
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-300"
+                    style={{
+                      width:
+                        downloadProgress.total && downloadProgress.total > 0
+                          ? `${Math.min(100, (downloadProgress.downloaded / downloadProgress.total) * 100)}%`
+                          : "30%",
+                    }}
+                  />
+                </div>
+              </div>
             )}
 
             {availableUpdate && (

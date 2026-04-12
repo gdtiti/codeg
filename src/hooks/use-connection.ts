@@ -6,7 +6,6 @@ import {
   useConnectionStore,
   getCachedSelectors,
   type ConnectionState,
-  type ConnectOptions,
   type LiveMessage,
   type PendingPermission,
   type PendingQuestion,
@@ -45,8 +44,7 @@ export interface UseConnectionReturn {
   connect: (
     agentType: AgentType,
     workingDir?: string,
-    sessionId?: string,
-    options?: ConnectOptions
+    sessionId?: string
   ) => Promise<void>
   disconnect: () => Promise<void>
   sendPrompt: (blocks: PromptInputBlock[]) => Promise<void>
@@ -96,12 +94,8 @@ export function useConnection(contextKey: string): UseConnectionReturn {
   const error = connection?.error ?? null
 
   const connect = useCallback(
-    (
-      agentType: AgentType,
-      workingDir?: string,
-      sessionId?: string,
-      options?: ConnectOptions
-    ) => actions.connect(contextKey, agentType, workingDir, sessionId, options),
+    (agentType: AgentType, workingDir?: string, sessionId?: string) =>
+      actions.connect(contextKey, agentType, workingDir, sessionId),
     [actions, contextKey]
   )
 

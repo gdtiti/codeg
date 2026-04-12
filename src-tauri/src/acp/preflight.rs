@@ -14,6 +14,7 @@ static NPM_ENV_CACHE: Mutex<Option<Vec<CheckItem>>> = Mutex::new(None);
 #[serde(rename_all = "snake_case")]
 pub enum FixActionKind {
     OpenUrl,
+    InstallOpencodePlugins,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -299,33 +300,151 @@ async fn check_binary_environment(
     };
     checks.push(platform_check);
 
-    // Check binary cache
+    // Check binary cache.
+    //
+    // Pass as long as *any* cached version is present — the session-page
+    // connect path uses the best cached version via
+    // `find_best_cached_binary_for_agent`, so an older-but-working cache
+    // should still be considered "ready". If the cached version differs
+    // from the registry's recommended version, we note it in the message
+    // but still pass — the Settings page's version-badge flow is the
+    // canonical place to surface "upgrade available".
     if platform_supported {
-        let cache_check = match binary_cache::find_cached_binary_for_agent(agent_type, version, cmd)
-        {
-            Ok(Some(_)) => CheckItem {
-                check_id: "binary_cached".into(),
-                label: "Binary cache".into(),
-                status: CheckStatus::Pass,
-                message: "Binary is cached locally".into(),
-                fixes: vec![],
-            },
-            Ok(None) => CheckItem {
-                check_id: "binary_cached".into(),
-                label: "Binary cache".into(),
-                status: CheckStatus::Warn,
-                message: "Binary not cached yet, will be downloaded on first connection".into(),
-                fixes: vec![],
-            },
-            Err(_) => CheckItem {
-                check_id: "binary_cached".into(),
-                label: "Binary cache".into(),
-                status: CheckStatus::Warn,
-                message: "Cannot determine binary cache path".into(),
-                fixes: vec![],
-            },
-        };
+        let cache_check =
+            match binary_cache::find_best_cached_binary_for_agent(agent_type, cmd) {
+                Ok(Some((_, cached_version))) => {
+                    let message = if cached_version == version {
+                        "Binary is cached locally".to_string()
+                    } else {
+                        format!(
+                            "Binary {cached_version} is cached locally (recommended: {version})"
+                        )
+                    };
+                    CheckItem {
+                        check_id: "binary_cached".into(),
+                        label: "Binary cache".into(),
+                        status: CheckStatus::Pass,
+                        message,
+                        fixes: vec![],
+                    }
+                }
+                Ok(None) => CheckItem {
+                    check_id: "binary_cached".into(),
+                    label: "Binary cache".into(),
+                    status: CheckStatus::Warn,
+                    message:
+                        "Binary is not installed. Download it from Agent Settings before connecting."
+                            .into(),
+                    fixes: vec![],
+                },
+                Err(_) => CheckItem {
+                    check_id: "binary_cached".into(),
+                    label: "Binary cache".into(),
+                    status: CheckStatus::Warn,
+                    message: "Cannot determine binary cache path".into(),
+                    fixes: vec![],
+                },
+            };
         checks.push(cache_check);
+    }
+
+    // OpenCode plugin checks
+    if agent_type == AgentType::OpenCode {
+        use crate::acp::opencode_plugins::{self, PluginStatus, spec_has_floating_version};
+        match opencode_plugins::check_opencode_plugins(None) {
+            Ok(summary) => {
+                let missing: Vec<_> = summary
+                    .plugins
+                    .iter()
+                    .filter(|p| p.status == PluginStatus::Missing)
+                    .collect();
+
+                if summary.plugins.is_empty() {
+                    checks.push(CheckItem {
+                        check_id: "opencode_plugins".into(),
+                        label: "OpenCode plugins".into(),
+                        status: CheckStatus::Pass,
+                        message: "No plugins declared".into(),
+                        fixes: vec![],
+                    });
+                } else if missing.is_empty() {
+                    checks.push(CheckItem {
+                        check_id: "opencode_plugins".into(),
+                        label: "OpenCode plugins".into(),
+                        status: CheckStatus::Pass,
+                        message: format!("{} plugin(s) installed", summary.plugins.len()),
+                        fixes: vec![],
+                    });
+                } else {
+                    let names: Vec<&str> =
+                        missing.iter().map(|p| p.name.as_str()).collect();
+                    checks.push(CheckItem {
+                        check_id: "opencode_plugins".into(),
+                        label: "OpenCode plugins".into(),
+                        status: CheckStatus::Fail,
+                        message: format!(
+                            "{} plugin(s) not installed: {}",
+                            missing.len(),
+                            names.join(", ")
+                        ),
+                        fixes: vec![FixAction {
+                            label: "Install Plugins".into(),
+                            kind: FixActionKind::InstallOpencodePlugins,
+                            payload: String::new(),
+                        }],
+                    });
+                }
+
+                // Warn about @latest specs that cause slow startup
+                let floating: Vec<&str> = summary
+                    .plugins
+                    .iter()
+                    .filter(|p| spec_has_floating_version(&p.declared_spec))
+                    .map(|p| p.name.as_str())
+                    .collect();
+                if !floating.is_empty() {
+                    checks.push(CheckItem {
+                        check_id: "opencode_plugins_floating".into(),
+                        label: "Plugin versions".into(),
+                        status: CheckStatus::Warn,
+                        message: format!(
+                            "{} plugin(s) use @latest which forces a network check on every startup: {}. \
+                             Install via the plugin manager to auto-pin versions.",
+                            floating.len(),
+                            floating.join(", ")
+                        ),
+                        fixes: vec![FixAction {
+                            label: "Install Plugins".into(),
+                            kind: FixActionKind::InstallOpencodePlugins,
+                            payload: String::new(),
+                        }],
+                    });
+                }
+
+                // Project-level config hint
+                if summary.has_project_config_hint {
+                    checks.push(CheckItem {
+                        check_id: "opencode_project_config_hint".into(),
+                        label: "Project config".into(),
+                        status: CheckStatus::Warn,
+                        message:
+                            "Project-level opencode config detected; its plugins are not checked. \
+                             Expect slower first connect if it declares plugins."
+                                .into(),
+                        fixes: vec![],
+                    });
+                }
+            }
+            Err(e) => {
+                checks.push(CheckItem {
+                    check_id: "opencode_plugins".into(),
+                    label: "OpenCode plugins".into(),
+                    status: CheckStatus::Warn,
+                    message: format!("Failed to parse opencode.json: {e}"),
+                    fixes: vec![],
+                });
+            }
+        }
     }
 
     checks

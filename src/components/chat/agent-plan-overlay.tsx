@@ -22,6 +22,7 @@ interface AgentPlanOverlayProps {
   planKey?: string | null
   visible?: boolean
   defaultExpanded?: boolean
+  isStreaming?: boolean
 }
 
 function getLatestPlanEntries(message: LiveMessage | null): PlanEntryInfo[] {
@@ -88,12 +89,18 @@ function getPriorityClassName(priority: string): string {
   }
 }
 
-function StatusIcon({ status }: { status: string }) {
+function StatusIcon({
+  status,
+  isStreaming,
+}: {
+  status: string
+  isStreaming: boolean
+}) {
   if (status === "completed") {
     return <CheckCircle2Icon className="h-3.5 w-3.5 text-emerald-500" />
   }
 
-  if (status === "in_progress") {
+  if (status === "in_progress" && isStreaming) {
     return <Loader2Icon className="h-3.5 w-3.5 text-blue-500 animate-spin" />
   }
 
@@ -106,6 +113,7 @@ export const AgentPlanOverlay = memo(function AgentPlanOverlay({
   planKey,
   visible = true,
   defaultExpanded = true,
+  isStreaming = false,
 }: AgentPlanOverlayProps) {
   const t = useTranslations("Folder.chat.agentPlanOverlay")
   const liveEntries = useMemo(
@@ -207,7 +215,7 @@ export const AgentPlanOverlay = memo(function AgentPlanOverlay({
               className="rounded-lg border bg-transparent px-2.5 py-2"
             >
               <div className="flex items-start gap-2">
-                <StatusIcon status={entry.status} />
+                <StatusIcon status={entry.status} isStreaming={isStreaming} />
                 <p
                   className={cn(
                     "min-w-0 flex-1 text-sm leading-5 break-words [overflow-wrap:anywhere]",

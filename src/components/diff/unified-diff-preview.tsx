@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import { useTranslations } from "next-intl"
 import { useFolderContext } from "@/contexts/folder-context"
 import { cn } from "@/lib/utils"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 type RowMarker = "none" | "added" | "deleted" | "modified"
 type DiffFileMode = "modified" | "added" | "deleted" | "renamed"
@@ -546,16 +547,16 @@ export function UnifiedDiffPreview({
 
   if (files.length === 0) {
     return (
-      <div className={cn("h-full overflow-auto scrollbar-thin", className)}>
+      <ScrollArea className={cn("h-full", className)} x="scroll">
         <pre className="font-mono text-[11px] leading-5 whitespace-pre-wrap text-muted-foreground p-3">
           {diffText}
         </pre>
-      </div>
+      </ScrollArea>
     )
   }
 
   return (
-    <div className={cn("h-full overflow-auto scrollbar-thin", className)}>
+    <ScrollArea className={cn("h-full", className)} x="scroll">
       <div className="space-y-3">
         {files.map((file) => {
           const newFile = isNewFileOnly(file)
@@ -586,7 +587,7 @@ export function UnifiedDiffPreview({
                 )}
               </header>
 
-              <div className="overflow-auto scrollbar-thin">
+              <ScrollArea x="scroll">
                 <div className="inline-block min-w-full">
                   {newFile
                     ? file.hunks.map((hunk) => (
@@ -599,11 +600,11 @@ export function UnifiedDiffPreview({
                         </div>
                       ))}
                 </div>
-              </div>
+              </ScrollArea>
             </section>
           )
         })}
       </div>
-    </div>
+    </ScrollArea>
   )
 }

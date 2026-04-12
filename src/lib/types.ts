@@ -256,7 +256,6 @@ export const AGENT_COLORS: Record<AgentType, string> = {
 // ACP connection status (matches Rust ConnectionStatus)
 export type ConnectionStatus =
   | "connecting"
-  | "downloading"
   | "connected"
   | "prompting"
   | "disconnected"
@@ -442,7 +441,14 @@ export type AcpEvent =
       connection_id: string
       status: ConnectionStatus
     }
-  | { type: "error"; connection_id: string; message: string }
+  | {
+      type: "error"
+      connection_id: string
+      message: string
+      agent_type: string
+      /** Stable backend error identifier for localization (e.g. "initialize_timeout"). */
+      code: string | null
+    }
   | {
       type: "available_commands"
       connection_id: string
@@ -879,6 +885,7 @@ export type FixActionKind =
   | "redownload_binary"
   | "retry_connection"
   | "open_agents_settings"
+  | "install_opencode_plugins"
 
 export interface FixAction {
   label: string
@@ -901,6 +908,40 @@ export interface PreflightResult {
   agent_name: string
   passed: boolean
   checks: CheckItem[]
+}
+
+// ─── OpenCode Plugins ───
+
+export type PluginStatus = "installed" | "missing"
+
+export interface PluginInfo {
+  name: string
+  declared_spec: string
+  installed_version: string | null
+  status: PluginStatus
+}
+
+export interface PluginCheckSummary {
+  config_path: string
+  cache_dir: string
+  plugins: PluginInfo[]
+  has_project_config_hint: boolean
+}
+
+export type PluginInstallEventKind = "started" | "log" | "completed" | "failed"
+
+export interface PluginInstallEvent {
+  task_id: string
+  kind: PluginInstallEventKind
+  payload: string
+}
+
+export type AgentInstallEventKind = "started" | "log" | "completed" | "failed"
+
+export interface AgentInstallEvent {
+  task_id: string
+  kind: AgentInstallEventKind
+  payload: string
 }
 
 // ─── Chat Channels ───

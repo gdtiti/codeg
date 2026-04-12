@@ -8,3 +8,4 @@ pub mod preflight;
 pub mod registry;
 pub mod terminal_runtime;
 pub mod types;
+pub mod opencode_plugins;

@@ -1106,19 +1106,12 @@ export function useConnectionStore(): ConnectionStoreApi {
 
 // ── Actions context (unchanged interface) ──
 
-export type ConnectSource = "manual" | "auto_link"
-
-export interface ConnectOptions {
-  source?: ConnectSource
-}
-
 export interface AcpActionsValue {
   connect(
     contextKey: string,
     agentType: AgentType,
     workingDir?: string,
-    sessionId?: string,
-    options?: ConnectOptions
+    sessionId?: string
   ): Promise<void>
   disconnect(contextKey: string): Promise<void>
   disconnectAll(): Promise<void>
@@ -1211,7 +1204,7 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
   // Keys whose disconnect was requested while connect was still in flight
   const abandonedKeysRef = useRef(new Set<string>())
 
-  type AutoLinkBlockState =
+  type ConnectBlockState =
     | { kind: "none"; reason: "" }
     | {
         kind: "missing_config" | "disabled" | "unavailable" | "sdk_missing"
@@ -1236,8 +1229,8 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
     [t]
   )
 
-  const resolveAutoLinkBlockState = useCallback(
-    (agent: AcpAgentStatus | null): AutoLinkBlockState => {
+  const resolveConnectBlockState = useCallback(
+    (agent: AcpAgentStatus | null): ConnectBlockState => {
       if (!agent) {
         return { kind: "missing_config", reason: t("blocked.missingConfig") }
       }
@@ -1714,23 +1707,54 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
         }
         case "error": {
           flushStreamingQueue()
-          dispatch({ type: "ERROR", contextKey, message: e.message })
-          pushAlertRef.current("error", t("eventErrorTitle"), e.message)
-          // Send OS notification for agent errors
-          {
-            const nc = storeRef.current.connections.get(contextKey)
-            if (nc) {
-              const agentLabel = AGENT_LABELS[nc.agentType]
-              const fn = folderNameRef.current
-              const title = fn ? `${fn} - Codeg` : "Codeg"
-              sendSystemNotification(
-                title,
-                t("notificationError", {
+          const nc = storeRef.current.connections.get(contextKey)
+          const agentLabel = nc
+            ? AGENT_LABELS[nc.agentType]
+            : (e.agent_type as string)
+
+          // Localize backend errors via their stable `code` identifier.
+          // Unknown codes fall back to the raw English message so we
+          // never swallow a useful stack trace.
+          const localizedMessage = (() => {
+            switch (e.code) {
+              case "initialize_timeout":
+                return t("backendErrors.initializeTimeout", {
+                  agent: agentLabel,
+                })
+              case "sdk_not_installed":
+                return t("blocked.sdkMissing", { agent: agentLabel })
+              case "platform_not_supported":
+                return t("blocked.unavailable", { agent: agentLabel })
+              case "process_exited":
+                return t("backendErrors.processExited", { agent: agentLabel })
+              case "spawn_failed":
+                return t("backendErrors.spawnFailed", {
                   agent: agentLabel,
                   message: e.message,
                 })
-              ).catch(() => {})
+              case "download_failed":
+                return t("backendErrors.downloadFailed", {
+                  agent: agentLabel,
+                  message: e.message,
+                })
+              default:
+                return e.message
             }
+          })()
+
+          dispatch({ type: "ERROR", contextKey, message: localizedMessage })
+          pushAlertRef.current("error", t("eventErrorTitle"), localizedMessage)
+          // Send OS notification for agent errors
+          if (nc) {
+            const fn = folderNameRef.current
+            const title = fn ? `${fn} - Codeg` : "Codeg"
+            sendSystemNotification(
+              title,
+              t("notificationError", {
+                agent: agentLabel,
+                message: localizedMessage,
+              })
+            ).catch(() => {})
           }
           break
         }
@@ -1821,11 +1845,7 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
       for (const [contextKey, conn] of storeRef.current.connections) {
         if (contextKey === currentActiveKey) continue
         if (currentOpenTabKeys.has(contextKey)) continue
-        if (
-          conn.status === "prompting" ||
-          conn.status === "connecting" ||
-          conn.status === "downloading"
-        ) {
+        if (conn.status === "prompting" || conn.status === "connecting") {
           continue
         }
         if (conn.status !== "connected") continue
@@ -1865,60 +1885,54 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
       contextKey: string,
       agentType: AgentType,
       workingDir?: string,
-      sessionId?: string,
-      options?: ConnectOptions
+      sessionId?: string
     ) => {
-      const source = options?.source ?? "manual"
-      const isAutoLink = source === "auto_link"
-
       if (connectingKeysRef.current.has(contextKey)) return
       connectingKeysRef.current.add(contextKey)
 
       try {
-        if (isAutoLink) {
-          let configuredAgent: AcpAgentStatus | null = null
-          try {
-            configuredAgent = await acpGetAgentStatus(agentType)
-          } catch (error) {
-            const reason = t("unableReadAgentConfig", {
-              message: normalizeErrorMessage(error),
-            })
-            const autoLinkFailedTitle = t("autoLinkFailedTitle", {
-              agent: AGENT_LABELS[agentType],
-            })
-            pushAlertRef.current(
-              "error",
-              autoLinkFailedTitle,
-              `${reason}\n${t("agentsSetupHint")}`,
-              [buildOpenAgentsSettingsAction(agentType)]
-            )
-            throw createAlertedError(reason)
-          }
+        // Preflight: read agent status and block if the SDK / binary is
+        // not installed. The session page must never trigger a download
+        // or install — if the agent is not ready, prompt the user to
+        // install it from Agent Settings instead.
+        let configuredAgent: AcpAgentStatus | null = null
+        try {
+          configuredAgent = await acpGetAgentStatus(agentType)
+        } catch (error) {
+          const reason = t("unableReadAgentConfig", {
+            message: normalizeErrorMessage(error),
+          })
+          const failedTitle = t("connectFailedTitle", {
+            agent: AGENT_LABELS[agentType],
+          })
+          pushAlertRef.current(
+            "error",
+            failedTitle,
+            `${reason}\n${t("agentsSetupHint")}`,
+            [buildOpenAgentsSettingsAction(agentType)]
+          )
+          throw createAlertedError(reason)
+        }
 
-          const blocked = resolveAutoLinkBlockState(configuredAgent)
-          if (blocked.kind !== "none") {
-            const autoLinkFailedTitle = t("autoLinkFailedTitle", {
-              agent: AGENT_LABELS[agentType],
-            })
-            const detail =
-              blocked.kind === "sdk_missing"
-                ? t("withSetupHint", {
-                    message: blocked.reason,
-                    hint: t("agentsSetupHint"),
-                  })
-                : `${blocked.reason}\n${t("agentsSetupHint")}`
-            pushAlertRef.current(
-              "error",
-              blocked.kind === "sdk_missing"
-                ? blocked.reason
-                : autoLinkFailedTitle,
-              detail,
-              [buildOpenAgentsSettingsAction(agentType)]
-            )
-            throw createAlertedError(
-              blocked.kind === "sdk_missing" ? blocked.reason : blocked.reason
-            )
-          }
+        const blocked = resolveConnectBlockState(configuredAgent)
+        if (blocked.kind !== "none") {
+          const failedTitle = t("connectFailedTitle", {
+            agent: AGENT_LABELS[agentType],
+          })
+          const detail =
+            blocked.kind === "sdk_missing"
+              ? t("withSetupHint", {
+                  message: blocked.reason,
+                  hint: t("agentsSetupHint"),
+                })
+              : `${blocked.reason}\n${t("agentsSetupHint")}`
+          pushAlertRef.current(
+            "error",
+            blocked.kind === "sdk_missing" ? blocked.reason : failedTitle,
+            detail,
+            [buildOpenAgentsSettingsAction(agentType)]
+          )
+          throw createAlertedError(blocked.reason)
         }
 
         const existing = storeRef.current.connections.get(contextKey)
@@ -1970,11 +1984,37 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         if (!isAlertedError(err)) {
           const message = normalizeErrorMessage(err)
-          pushAlertRef.current(
-            "error",
-            t("connectFailedTitle", { agent: agentType }),
-            message
-          )
+          const agentLabel = AGENT_LABELS[agentType]
+          // Backend safety net: if the agent turned out to be not
+          // installed (e.g. the binary was removed between preflight
+          // and spawn), surface the same install prompt with a direct
+          // "Open Agent Settings" action. Title is localized via the
+          // same i18n key the preflight path uses.
+          //
+          // INVARIANT: `AcpError::SdkNotInstalled` renders its payload
+          // unchanged, and both producers
+          // (`src-tauri/src/commands/acp.rs::verify_agent_installed`
+          // and `src-tauri/src/acp/connection.rs::build_agent` Binary
+          // branch) format the message with the literal English
+          // substring "is not installed". Do NOT translate those two
+          // format strings — this branch matches on them as a stable
+          // identifier, since `AcpError::Serialize` flattens to a bare
+          // message string and does not expose the error `code` for
+          // synchronous Tauri command rejections.
+          if (message.includes("is not installed")) {
+            pushAlertRef.current(
+              "error",
+              t("blocked.sdkMissing", { agent: agentLabel }),
+              t("agentsSetupHint"),
+              [buildOpenAgentsSettingsAction(agentType)]
+            )
+          } else {
+            pushAlertRef.current(
+              "error",
+              t("connectFailedTitle", { agent: agentLabel }),
+              message
+            )
+          }
         }
         throw err
       } finally {
@@ -1987,7 +2027,7 @@ export function AcpConnectionsProvider({ children }: { children: ReactNode }) {
       consumeBufferedEvents,
       dispatch,
       handleMappedEvent,
-      resolveAutoLinkBlockState,
+      resolveConnectBlockState,
       t,
       waitForListenerReady,
     ]

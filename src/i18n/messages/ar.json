@@ -111,7 +111,35 @@
       "light": "فاتح",
       "dark": "داكن",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "لون السمة",
+      "sectionDescription": "اختر لوحة ألوان للتمييزات والأزرار والإبرازات.",
+      "current": "اللون الحالي: {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "تكبير النافذة",
+      "sectionDescription": "تكبير أو تصغير الواجهة بالكامل. يتم تطبيقه فوراً ويُحفظ لكل جهاز على حدة.",
+      "placeholder": "اختر مستوى التكبير",
+      "default": "افتراضي",
+      "current": "التكبير الحالي: {zoom}%"
+    },
+    "resetToDefaults": "إعادة الضبط",
+    "resetHint": "إعادة ضبط لون السمة وتكبير النافذة إلى الإعدادات الافتراضية."
   },
   "SystemSettings": {
     "loading": "جارٍ التحميل...",
@@ -144,6 +172,7 @@
     "checking": "جارٍ التحقق...",
     "checkUpdate": "التحقق من التحديثات",
     "updating": "جارٍ التثبيت...",
+    "downloading": "جارٍ التنزيل...",
     "upgradeTo": "الترقية إلى v{version}",
     "foundUpdate": "تم العثور على إصدار جديد v{version}",
     "alreadyLatest": "أنت على أحدث إصدار",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "اختر Reasoning Effort",
       "enableWebsocket": "تفعيل WebSocket",
       "enableWebsocketAria": "تفعيل WebSocket لـ Codex Provider",
+      "enableSkills": "تفعيل Skills",
+      "enableSkillsAria": "تفعيل Skills لـ Codex",
       "authJsonNative": "auth.json (أصلي)",
       "configTomlNative": "config.toml (أصلي)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "تكوين مزود واجهة برمجة التطبيقات وبيانات اعتماد Cline. يتم حفظ الإعدادات في ~/.cline/data/."
+    },
+    "opencodePlugins": {
+      "title": "إضافات OpenCode",
+      "declared": "الإضافات المعلنة",
+      "noPlugins": "لا توجد إضافات معلنة في opencode.json",
+      "status": {
+        "installed": "مثبّت",
+        "missing": "غير مثبّت"
+      },
+      "installAll": "تثبيت جميع الإضافات المفقودة",
+      "pinVersions": "تثبيت إصدارات @latest",
+      "install": "تثبيت",
+      "uninstall": "إزالة",
+      "refresh": "تحديث",
+      "success": "تم تثبيت جميع الإضافات بنجاح",
+      "failed": "فشلت عملية الإضافة"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "متصل",
         "connecting": "جارٍ الاتصال...",
-        "downloading": "جارٍ التنزيل...",
         "prompting": "جارٍ الرد...",
         "error": "خطأ في الاتصال",
         "disconnected": "غير متصل",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} غير متاح على المنصة الحالية.",
           "sdkMissing": "لم يتم تثبيت SDK الخاص بـ {agent}"
         },
+        "backendErrors": {
+          "initializeTimeout": "انتهت مهلة مصافحة اتصال {agent} (لا استجابة بعد 60 ثانية). افتح الإعدادات للتحقق من إعدادات الوكيل والشبكة.",
+          "processExited": "انتهت عملية {agent} بشكل غير متوقع.",
+          "spawnFailed": "تعذر بدء تشغيل {agent}: {message}",
+          "downloadFailed": "فشل تنزيل {agent}: {message}"
+        },
         "unableReadAgentConfig": "تعذر قراءة إعدادات الوكيل: {message}",
-        "autoLinkFailedTitle": "فشل الربط التلقائي لـ {agent}",
-        "preflightCheckFailedDefault": "فشلت فحوصات ما قبل التشغيل. تحقق من إعدادات الوكلاء.",
-        "preflightFailedTitle": "فشل فحص ما قبل التشغيل لـ {agent}",
-        "autoLinkPreflightFailed": "فشل فحص ما قبل التشغيل للربط التلقائي: {message}",
         "connectFailedTitle": "فشل اتصال {agent}",
         "toolFallbackTitle": "أداة",
         "eventErrorTitle": "خطأ الوكيل",

@@ -4,6 +4,11 @@ import { getTransport, isDesktop } from "./transport"
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Update = any
 
+export type DownloadEvent =
+  | { event: "Started"; data: { contentLength?: number } }
+  | { event: "Progress"; data: { chunkLength: number } }
+  | { event: "Finished" }
+
 export interface AppUpdateCheckResult {
   currentVersion: string
   update: Update | null
@@ -46,9 +51,10 @@ export async function checkAppUpdate(): Promise<AppUpdateCheckResult> {
 }
 
 export async function installAppUpdate(
-  update: NonNullable<Update>
+  update: NonNullable<Update>,
+  onEvent?: (progress: DownloadEvent) => void
 ): Promise<void> {
-  await update.downloadAndInstall()
+  await update.downloadAndInstall(onEvent)
 }
 
 export async function relaunchApp(): Promise<void> {

@@ -111,7 +111,35 @@
       "light": "라이트",
       "dark": "다크",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "테마 색상",
+      "sectionDescription": "버튼, 강조 색상, 하이라이트에 사용할 색상 팔레트를 선택하세요.",
+      "current": "현재 색상: {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "창 확대/축소",
+      "sectionDescription": "전체 인터페이스를 확대하거나 축소합니다. 즉시 적용되며 장치별로 저장됩니다.",
+      "placeholder": "확대/축소 단계 선택",
+      "default": "기본값",
+      "current": "현재 확대/축소: {zoom}%"
+    },
+    "resetToDefaults": "기본값으로 재설정",
+    "resetHint": "테마 색상과 창 확대/축소를 기본값으로 재설정합니다."
   },
   "SystemSettings": {
     "loading": "로딩 중...",
@@ -144,6 +172,7 @@
     "checking": "확인 중...",
     "checkUpdate": "업데이트 확인",
     "updating": "설치 중...",
+    "downloading": "다운로드 중...",
     "upgradeTo": "v{version}로 업그레이드",
     "foundUpdate": "새 버전 v{version}을 찾았습니다",
     "alreadyLatest": "이미 최신 버전입니다",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Reasoning Effort 선택",
       "enableWebsocket": "WebSocket 활성화",
       "enableWebsocketAria": "Codex Provider용 WebSocket 활성화",
+      "enableSkills": "Skills 활성화",
+      "enableSkillsAria": "Codex용 Skills 활성화",
       "authJsonNative": "auth.json (네이티브)",
       "configTomlNative": "config.toml (네이티브)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Cline API 제공자와 자격 증명을 구성합니다. 설정은 ~/.cline/data/에 저장됩니다."
+    },
+    "opencodePlugins": {
+      "title": "OpenCode 플러그인",
+      "declared": "선언된 플러그인",
+      "noPlugins": "opencode.json에 선언된 플러그인이 없습니다",
+      "status": {
+        "installed": "설치됨",
+        "missing": "미설치"
+      },
+      "installAll": "누락된 플러그인 모두 설치",
+      "pinVersions": "@latest 버전 고정",
+      "install": "설치",
+      "uninstall": "제거",
+      "refresh": "새로고침",
+      "success": "모든 플러그인이 성공적으로 설치되었습니다",
+      "failed": "플러그인 작업 실패"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "연결됨",
         "connecting": "연결 중...",
-        "downloading": "다운로드 중...",
         "prompting": "응답 중...",
         "error": "연결 오류",
         "disconnected": "연결 끊김",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent}은(는) 현재 플랫폼에서 사용할 수 없습니다.",
           "sdkMissing": "{agent} SDK가 설치되어 있지 않습니다"
         },
+        "backendErrors": {
+          "initializeTimeout": "{agent} 연결 핸드셰이크가 시간 초과되었습니다(60초 동안 응답 없음). 설정을 열어 에이전트 및 네트워크 구성을 확인하세요.",
+          "processExited": "{agent} 프로세스가 예기치 않게 종료되었습니다.",
+          "spawnFailed": "{agent} 시작 실패: {message}",
+          "downloadFailed": "{agent} 다운로드 실패: {message}"
+        },
         "unableReadAgentConfig": "에이전트 구성을 읽을 수 없습니다: {message}",
-        "autoLinkFailedTitle": "{agent} 자동 연결 실패",
-        "preflightCheckFailedDefault": "사전 점검에 실패했습니다. 에이전트 설정을 확인하세요.",
-        "preflightFailedTitle": "{agent} 사전 점검 실패",
-        "autoLinkPreflightFailed": "자동 연결 사전 점검 실패: {message}",
         "connectFailedTitle": "{agent} 연결 실패",
         "toolFallbackTitle": "도구",
         "eventErrorTitle": "에이전트 오류",

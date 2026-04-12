@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl"
 import type {
+  AgentType,
   ConnectionStatus,
   PromptCapabilitiesInfo,
   PromptDraft,
@@ -29,6 +30,7 @@ interface ChatInputProps {
   selectedModeId?: string | null
   onModeChange?: (modeId: string) => void
   onConfigOptionChange?: (configId: string, valueId: string) => void
+  agentType?: AgentType | null
   availableCommands?: AvailableCommandInfo[] | null
   attachmentTabId?: string | null
   draftStorageKey?: string | null
@@ -62,6 +64,7 @@ export function ChatInput({
   selectedModeId,
   onModeChange,
   onConfigOptionChange,
+  agentType,
   availableCommands,
   attachmentTabId,
   draftStorageKey,
@@ -81,7 +84,7 @@ export function ChatInput({
   const t = useTranslations("Folder.chat.chatInput")
   const isConnected = status === "connected"
   const isPrompting = status === "prompting"
-  const isConnecting = status === "connecting" || status === "downloading"
+  const isConnecting = status === "connecting"
 
   return (
     <div className="p-4 pt-0">
@@ -113,6 +116,7 @@ export function ChatInput({
         selectedModeId={selectedModeId}
         onModeChange={onModeChange}
         onConfigOptionChange={onConfigOptionChange}
+        agentType={agentType}
         availableCommands={availableCommands}
         attachmentTabId={attachmentTabId}
         draftStorageKey={draftStorageKey}

@@ -37,6 +37,7 @@ import {
   stopFileTreeWatch,
 } from "@/lib/api"
 import { emitAttachFileToSession } from "@/lib/session-attachment-events"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import type {
   FileTreeChangedEvent,
   FileTreeNode,
@@ -2167,7 +2168,7 @@ export function FileTreeTab() {
     <div className="flex flex-col h-full">
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div className="flex-1 min-h-0 overflow-auto pb-1 scrollbar-thin-edge">
+          <ScrollArea className="flex-1 min-h-0 pb-1" x="scroll">
             <FileTree
               key={folder?.path ?? "file-tree-empty"}
               className="border-0 rounded-none bg-transparent w-max min-w-full"
@@ -2319,7 +2320,7 @@ export function FileTreeTab() {
                 </ContextMenu>
               )}
             </FileTree>
-          </div>
+          </ScrollArea>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuSub>

@@ -33,7 +33,7 @@ function normalizeErrorMessage(error: unknown): string {
   return String(error)
 }
 
-function isExpectedAutoLinkError(error: unknown): boolean {
+function isExpectedConnectError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false
   return (error as { alerted?: unknown }).alerted === true
 }
@@ -77,12 +77,10 @@ export function useConnectionLifecycle({
   const modeLoading =
     !hasCachedSelectors &&
     (status === "connecting" ||
-      status === "downloading" ||
       (isInteractiveStatus && !effectiveSelectorsReady))
   const configOptionsLoading =
     !hasCachedSelectors &&
     (status === "connecting" ||
-      status === "downloading" ||
       (isInteractiveStatus && !effectiveSelectorsReady))
   // Gate for send button: block until the backend session is fully
   // initialized (selectorsReady from the real backend event, not cache).
@@ -141,9 +139,7 @@ export function useConnectionLifecycle({
     const s = statusRef.current
     if (!s || s === "disconnected" || s === "error") {
       connConnectRef
-        .current(agentTypeRef.current, workingDir, sessionIdRef.current, {
-          source: "auto_link",
-        })
+        .current(agentTypeRef.current, workingDir, sessionIdRef.current)
         .then(() => {
           if (!cancelled) {
             setLastAutoConnectError(null)
@@ -157,7 +153,7 @@ export function useConnectionLifecycle({
               message: normalizeErrorMessage(e),
             })
           }
-          if (!isExpectedAutoLinkError(e)) {
+          if (!isExpectedConnectError(e)) {
             console.error("[ConnLifecycle] auto-connect:", e)
           }
         })
@@ -170,7 +166,7 @@ export function useConnectionLifecycle({
   // Manage task status for connection progress
   const taskIdRef = useRef<string | null>(null)
   useEffect(() => {
-    if (status === "connecting" || status === "downloading") {
+    if (status === "connecting") {
       if (!taskIdRef.current) {
         const id = `acp-connect-${Date.now()}`
         taskIdRef.current = id
@@ -271,10 +267,8 @@ export function useConnectionLifecycle({
     touchActivity(contextKey)
     if (!status || status === "disconnected" || status === "error") {
       setLastAutoConnectError(null)
-      connConnect(agentType, workingDir, sessionId, {
-        source: "auto_link",
-      }).catch((e: unknown) => {
-        if (!isExpectedAutoLinkError(e)) {
+      connConnect(agentType, workingDir, sessionId).catch((e: unknown) => {
+        if (!isExpectedConnectError(e)) {
           console.error("[ConnLifecycle] connect:", e)
         }
       })

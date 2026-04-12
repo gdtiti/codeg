@@ -42,7 +42,11 @@ impl ConnectionManager {
             connection_id, owner_window_label, agent_type
         );
 
-        let conn = spawn_agent_connection(
+        // `spawn_agent_connection` inserts the entry into `self.connections`
+        // itself and registers a cleanup hook that removes it once the
+        // background `run_connection` task exits. This keeps the manager
+        // from leaking entries after timeouts / errors.
+        spawn_agent_connection(
             connection_id.clone(),
             agent_type,
             working_dir,
@@ -50,13 +54,9 @@ impl ConnectionManager {
             runtime_env,
             owner_window_label,
             emitter,
+            self.connections.clone(),
         )
         .await?;
-
-        self.connections
-            .lock()
-            .await
-            .insert(connection_id.clone(), conn);
 
         Ok(connection_id)
     }

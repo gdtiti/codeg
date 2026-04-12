@@ -14,6 +14,10 @@ pub enum AcpError {
     DownloadFailed(String),
     #[error("platform not supported: {0}")]
     PlatformNotSupported(String),
+    #[error("{0}")]
+    SdkNotInstalled(String),
+    #[error("Agent did not respond to Initialize within 60 seconds. The cached binary may be outdated or incompatible. Try upgrading it from Agent Settings.")]
+    InitializeTimeout,
 }
 
 impl AcpError {
@@ -29,6 +33,25 @@ impl AcpError {
         }
 
         Self::Protocol(sanitized)
+    }
+
+    /// Stable machine-readable identifier for this error kind.
+    ///
+    /// Returned to the frontend alongside the human-readable message so
+    /// the UI can render a localized message based on the code instead
+    /// of parsing English text. `None` means "no stable code — show the
+    /// raw message as a fallback".
+    pub fn code(&self) -> Option<&'static str> {
+        match self {
+            Self::SdkNotInstalled(_) => Some("sdk_not_installed"),
+            Self::PlatformNotSupported(_) => Some("platform_not_supported"),
+            Self::InitializeTimeout => Some("initialize_timeout"),
+            Self::ProcessExited => Some("process_exited"),
+            Self::SpawnFailed(_) => Some("spawn_failed"),
+            Self::DownloadFailed(_) => Some("download_failed"),
+            Self::ConnectionNotFound(_) => Some("connection_not_found"),
+            Self::Protocol(_) => None,
+        }
     }
 }
 

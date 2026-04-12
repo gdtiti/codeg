@@ -99,7 +99,7 @@
     }
   },
   "AppearanceSettings": {
-    "sectionTitle": "Design",
+    "sectionTitle": "Design-Erscheinungsbild",
     "sectionDescription": "Wähle hell, dunkel oder Systemvorgabe. Einstellungen werden automatisch gespeichert.",
     "themeMode": "Designmodus",
     "placeholder": "Designmodus auswählen",
@@ -111,7 +111,35 @@
       "light": "Hell",
       "dark": "Dunkel",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "Themenfarbe",
+      "sectionDescription": "Wähle eine Farbpalette für Akzente, Schaltflächen und Hervorhebungen.",
+      "current": "Aktuelle Farbe: {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "Fensterzoom",
+      "sectionDescription": "Skaliert die gesamte Oberfläche. Wird sofort übernommen und pro Gerät gespeichert.",
+      "placeholder": "Zoomstufe wählen",
+      "default": "Standard",
+      "current": "Aktueller Zoom: {zoom}%"
+    },
+    "resetToDefaults": "Auf Standard zurücksetzen",
+    "resetHint": "Themenfarbe und Fensterzoom auf Standardwerte zurücksetzen."
   },
   "SystemSettings": {
     "loading": "Wird geladen...",
@@ -144,6 +172,7 @@
     "checking": "Wird geprüft...",
     "checkUpdate": "Nach Updates suchen",
     "updating": "Wird installiert...",
+    "downloading": "Herunterladen...",
     "upgradeTo": "Auf v{version} aktualisieren",
     "foundUpdate": "Neue Version v{version} gefunden",
     "alreadyLatest": "Du verwendest bereits die neueste Version",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Reasoning Effort auswählen",
       "enableWebsocket": "WebSocket aktivieren",
       "enableWebsocketAria": "WebSocket für Codex Provider aktivieren",
+      "enableSkills": "Skills aktivieren",
+      "enableSkillsAria": "Skills für Codex aktivieren",
       "authJsonNative": "auth.json (nativ)",
       "configTomlNative": "config.toml (nativ)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Konfigurieren Sie den Cline API-Anbieter und die Anmeldedaten. Einstellungen werden in ~/.cline/data/ gespeichert."
+    },
+    "opencodePlugins": {
+      "title": "OpenCode-Plugins",
+      "declared": "Deklarierte Plugins",
+      "noPlugins": "Keine Plugins in opencode.json deklariert",
+      "status": {
+        "installed": "Installiert",
+        "missing": "Nicht installiert"
+      },
+      "installAll": "Alle fehlenden installieren",
+      "pinVersions": "@latest-Versionen fixieren",
+      "install": "Installieren",
+      "uninstall": "Deinstallieren",
+      "refresh": "Aktualisieren",
+      "success": "Alle Plugins wurden erfolgreich installiert",
+      "failed": "Plugin-Vorgang fehlgeschlagen"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "Verbunden",
         "connecting": "Verbinde...",
-        "downloading": "Lade herunter...",
         "prompting": "Antworte...",
         "error": "Verbindungsfehler",
         "disconnected": "Getrennt",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} ist auf der aktuellen Plattform nicht verfügbar.",
           "sdkMissing": "{agent} SDK ist nicht installiert"
         },
+        "backendErrors": {
+          "initializeTimeout": "Der Verbindungs-Handshake von {agent} hat nach 60 Sekunden das Zeitlimit überschritten. Öffnen Sie die Einstellungen, um Agenten- und Netzwerkkonfiguration zu prüfen.",
+          "processExited": "{agent}-Prozess wurde unerwartet beendet.",
+          "spawnFailed": "{agent} konnte nicht gestartet werden: {message}",
+          "downloadFailed": "{agent}-Download fehlgeschlagen: {message}"
+        },
         "unableReadAgentConfig": "Agenten-Konfiguration kann nicht gelesen werden: {message}",
-        "autoLinkFailedTitle": "{agent} Auto-Link fehlgeschlagen",
-        "preflightCheckFailedDefault": "Preflight-Prüfungen fehlgeschlagen. Prüfen Sie die Agenten-Einstellungen.",
-        "preflightFailedTitle": "{agent} Preflight fehlgeschlagen",
-        "autoLinkPreflightFailed": "Auto-Link-Preflight fehlgeschlagen: {message}",
         "connectFailedTitle": "{agent} Verbindung fehlgeschlagen",
         "toolFallbackTitle": "Werkzeug",
         "eventErrorTitle": "Agentenfehler",

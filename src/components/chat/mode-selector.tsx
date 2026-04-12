@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DropdownRadioItemContent } from "@/components/chat/dropdown-radio-item-content"
 import type { SessionModeInfo } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
 interface ModeSelectorProps {
   modes: SessionModeInfo[]
@@ -26,15 +25,13 @@ export function ModeSelector({
 }: ModeSelectorProps) {
   const selectedMode = modes.find((m) => m.id === selectedModeId)
   const label = selectedMode?.name ?? "Mode"
-  const isActive = Boolean(selectedMode)
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="xs"
-          className={cn("gap-1 min-w-0", isActive && "text-primary")}
+          className="gap-1 min-w-0"
           title={selectedMode?.description ?? selectedMode?.name}
         >
           <span className="truncate">{label}</span>

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { DropdownRadioItemContent } from "@/components/chat/dropdown-radio-item-content"
 import type { SessionConfigOptionInfo } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
 interface SessionConfigSelectorProps {
   option: SessionConfigOptionInfo
@@ -31,18 +30,13 @@ export function SessionConfigSelector({
     (item) => item.value === option.kind.current_value
   )
   const label = selected?.name ?? option.kind.current_value
-  const isActive = Boolean(selected)
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
           size="xs"
-          className={cn(
-            "gap-1 min-w-0 bg-transparent",
-            isActive && "text-primary"
-          )}
+          className="gap-1 min-w-0 bg-transparent"
           title={option.description ?? option.name}
         >
           <span className="truncate">{label}</span>

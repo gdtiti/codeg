@@ -88,7 +88,7 @@ export function VirtualizedMessageThread<T>({
               key={getItemKey(item, index)}
               style={itemStyle(index, items.length)}
             >
-              <div className={cn("mx-auto max-w-3xl px-2", className)}>
+              <div className={cn("mx-auto max-w-3xl px-4", className)}>
                 {renderItem(item, index)}
               </div>
             </div>

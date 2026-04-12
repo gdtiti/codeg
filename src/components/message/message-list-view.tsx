@@ -460,6 +460,7 @@ export function MessageListView({
         entries={historicalPlanEntries}
         planKey={historicalPlanKey}
         defaultExpanded={connStatus === "prompting"}
+        isStreaming={connStatus === "prompting"}
       />
     </div>
   )

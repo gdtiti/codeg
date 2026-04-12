@@ -131,6 +131,10 @@ pub enum AcpEvent {
         connection_id: String,
         message: String,
         agent_type: String,
+        /// Stable machine-readable identifier (e.g. "initialize_timeout").
+        /// When present, the frontend renders a localized message keyed on
+        /// this code; otherwise it falls back to `message`.
+        code: Option<String>,
     },
     /// Available slash commands updated
     AvailableCommands {
@@ -212,7 +216,6 @@ pub struct PlanEntryInfo {
 #[serde(rename_all = "snake_case")]
 pub enum ConnectionStatus {
     Connecting,
-    Downloading,
     Connected,
     Prompting,
     Disconnected,

@@ -111,7 +111,35 @@
       "light": "ライト",
       "dark": "ダーク",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "テーマカラー",
+      "sectionDescription": "ボタンやアクセント、ハイライトに使用する色を選択します。",
+      "current": "現在のカラー：{color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "ウィンドウズーム",
+      "sectionDescription": "インターフェイス全体を拡大・縮小します。すぐに反映され、デバイスごとに保存されます。",
+      "placeholder": "ズームレベルを選択",
+      "default": "デフォルト",
+      "current": "現在のズーム：{zoom}%"
+    },
+    "resetToDefaults": "デフォルトに戻す",
+    "resetHint": "テーマカラーとウィンドウズームをデフォルトに戻します。"
   },
   "SystemSettings": {
     "loading": "読み込み中...",
@@ -144,6 +172,7 @@
     "checking": "確認中...",
     "checkUpdate": "更新を確認",
     "updating": "インストール中...",
+    "downloading": "ダウンロード中...",
     "upgradeTo": "v{version} にアップグレード",
     "foundUpdate": "新しいバージョン v{version} が見つかりました",
     "alreadyLatest": "すでに最新バージョンです",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Reasoning Effort を選択",
       "enableWebsocket": "WebSocket を有効化",
       "enableWebsocketAria": "Codex Provider の WebSocket を有効化",
+      "enableSkills": "Skills を有効化",
+      "enableSkillsAria": "Codex の Skills を有効化",
       "authJsonNative": "auth.json（ネイティブ）",
       "configTomlNative": "config.toml（ネイティブ）"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Cline API プロバイダーと認証情報を設定します。設定は ~/.cline/data/ に保存されます。"
+    },
+    "opencodePlugins": {
+      "title": "OpenCode プラグイン",
+      "declared": "宣言済みプラグイン",
+      "noPlugins": "opencode.json にプラグインが宣言されていません",
+      "status": {
+        "installed": "インストール済み",
+        "missing": "未インストール"
+      },
+      "installAll": "不足プラグインをすべてインストール",
+      "pinVersions": "@latest バージョンを固定",
+      "install": "インストール",
+      "uninstall": "アンインストール",
+      "refresh": "更新",
+      "success": "すべてのプラグインが正常にインストールされました",
+      "failed": "プラグイン操作に失敗しました"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "接続済み",
         "connecting": "接続中...",
-        "downloading": "ダウンロード中...",
         "prompting": "応答中...",
         "error": "接続エラー",
         "disconnected": "未接続",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} は現在のプラットフォームでは利用できません。",
           "sdkMissing": "{agent} SDK がインストールされていません"
         },
+        "backendErrors": {
+          "initializeTimeout": "{agent} の接続ハンドシェイクがタイムアウトしました（60 秒以内に応答なし）。設定を開いてエージェントとネットワーク設定を確認してください。",
+          "processExited": "{agent} プロセスが予期せず終了しました。",
+          "spawnFailed": "{agent} の起動に失敗しました: {message}",
+          "downloadFailed": "{agent} のダウンロードに失敗しました: {message}"
+        },
         "unableReadAgentConfig": "エージェント設定を読み取れません: {message}",
-        "autoLinkFailedTitle": "{agent} の自動リンクに失敗しました",
-        "preflightCheckFailedDefault": "事前チェックに失敗しました。エージェント設定を確認してください。",
-        "preflightFailedTitle": "{agent} の事前チェックに失敗しました",
-        "autoLinkPreflightFailed": "自動リンクの事前チェックに失敗しました: {message}",
         "connectFailedTitle": "{agent} の接続に失敗しました",
         "toolFallbackTitle": "ツール",
         "eventErrorTitle": "エージェントエラー",

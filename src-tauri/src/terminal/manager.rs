@@ -92,11 +92,19 @@ fn detect_windows_shell_flavor(shell: &str) -> WindowsShellFlavor {
 fn configure_shell_command(cmd: &mut CommandBuilder, shell: &str, initial_command: Option<&str>) {
     #[cfg(target_os = "windows")]
     {
+        // Force UTF-8 output for all Windows shell flavors
+        cmd.env("PYTHONUTF8", "1");
+        cmd.env("PYTHONIOENCODING", "utf-8");
+
         match detect_windows_shell_flavor(shell) {
             WindowsShellFlavor::Cmd => {
                 if let Some(command) = initial_command {
                     cmd.env("CODEG_CMD", command);
-                    cmd.args(["/D", "/S", "/C", "%CODEG_CMD%"]);
+                    // Set UTF-8 code page before running the actual command
+                    cmd.args(["/D", "/S", "/C", "chcp 65001 >nul & %CODEG_CMD%"]);
+                } else {
+                    // /K runs the command then stays open for interactive use
+                    cmd.args(["/D", "/S", "/K", "chcp 65001 >nul"]);
                 }
             }
             WindowsShellFlavor::PowerShell => {
@@ -106,16 +114,24 @@ fn configure_shell_command(cmd: &mut CommandBuilder, shell: &str, initial_comman
                         "-NoLogo",
                         "-NoProfile",
                         "-Command",
-                        "$ErrorActionPreference = 'Stop'; Invoke-Expression $env:CODEG_CMD",
+                        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $ErrorActionPreference = 'Stop'; Invoke-Expression $env:CODEG_CMD",
                     ]);
                 } else {
-                    cmd.args(["-NoLogo", "-NoProfile"]);
+                    // -NoExit runs the command then stays open for interactive use
+                    cmd.args([
+                        "-NoLogo",
+                        "-NoProfile",
+                        "-NoExit",
+                        "-Command",
+                        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; $host.UI.RawUI.WindowTitle = 'codeg'",
+                    ]);
                 }
             }
             WindowsShellFlavor::Posix => {
                 cmd.env("TERM", "xterm-256color");
                 cmd.env("COLORTERM", "truecolor");
                 cmd.env("TERM_PROGRAM", "codeg");
+                cmd.env("LANG", "C.UTF-8");
                 if let Some(command) = initial_command {
                     cmd.env("CODEG_CMD", command);
                     cmd.args(["-l", "-i", "-c", "eval \"$CODEG_CMD\""]);

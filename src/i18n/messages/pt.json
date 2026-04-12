@@ -111,7 +111,35 @@
       "light": "Claro",
       "dark": "Escuro",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "Cor do tema",
+      "sectionDescription": "Escolha uma paleta de cores para acentos, botões e destaques.",
+      "current": "Cor atual: {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "Zoom da janela",
+      "sectionDescription": "Dimensiona toda a interface. Aplica imediatamente e é salvo por dispositivo.",
+      "placeholder": "Selecione o nível de zoom",
+      "default": "Padrão",
+      "current": "Zoom atual: {zoom}%"
+    },
+    "resetToDefaults": "Restaurar padrões",
+    "resetHint": "Restaura a cor do tema e o zoom da janela para os padrões."
   },
   "SystemSettings": {
     "loading": "Carregando...",
@@ -144,6 +172,7 @@
     "checking": "Verificando...",
     "checkUpdate": "Verificar atualizações",
     "updating": "Instalando...",
+    "downloading": "Baixando...",
     "upgradeTo": "Atualizar para v{version}",
     "foundUpdate": "Nova versão v{version} encontrada",
     "alreadyLatest": "Você já está na versão mais recente",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Selecionar Reasoning Effort",
       "enableWebsocket": "Habilitar WebSocket",
       "enableWebsocketAria": "Habilitar WebSocket para Codex Provider",
+      "enableSkills": "Habilitar Skills",
+      "enableSkillsAria": "Habilitar Skills para Codex",
       "authJsonNative": "auth.json (nativo)",
       "configTomlNative": "config.toml (nativo)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Configure o provedor de API e as credenciais do Cline. As configurações são salvas em ~/.cline/data/."
+    },
+    "opencodePlugins": {
+      "title": "Plugins do OpenCode",
+      "declared": "Plugins declarados",
+      "noPlugins": "Nenhum plugin declarado em opencode.json",
+      "status": {
+        "installed": "Instalado",
+        "missing": "Não instalado"
+      },
+      "installAll": "Instalar todos os ausentes",
+      "pinVersions": "Fixar versões @latest",
+      "install": "Instalar",
+      "uninstall": "Desinstalar",
+      "refresh": "Atualizar",
+      "success": "Todos os plugins foram instalados com sucesso",
+      "failed": "Operação do plugin falhou"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "Conectado",
         "connecting": "Conectando...",
-        "downloading": "Baixando...",
         "prompting": "Respondendo...",
         "error": "Erro de conexão",
         "disconnected": "Desconectado",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} está indisponível na plataforma atual.",
           "sdkMissing": "O SDK de {agent} não está instalado"
         },
+        "backendErrors": {
+          "initializeTimeout": "O handshake de conexão de {agent} expirou (sem resposta após 60 segundos). Abra Configurações para verificar a configuração do agente e da rede.",
+          "processExited": "O processo de {agent} encerrou inesperadamente.",
+          "spawnFailed": "Falha ao iniciar {agent}: {message}",
+          "downloadFailed": "Falha no download de {agent}: {message}"
+        },
         "unableReadAgentConfig": "Não foi possível ler a configuração do agente: {message}",
-        "autoLinkFailedTitle": "Falha no vínculo automático de {agent}",
-        "preflightCheckFailedDefault": "As verificações de pré-voo falharam. Verifique as configurações de agentes.",
-        "preflightFailedTitle": "Pré-voo de {agent} falhou",
-        "autoLinkPreflightFailed": "Pré-voo do vínculo automático falhou: {message}",
         "connectFailedTitle": "Falha na conexão de {agent}",
         "toolFallbackTitle": "Ferramenta",
         "eventErrorTitle": "Erro do agente",

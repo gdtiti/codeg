@@ -1,55 +1,59 @@
 "use client"
 
-import * as React from "react"
-import { ScrollArea as ScrollAreaPrimitive } from "radix-ui"
+import { useMemo } from "react"
+import {
+  OverlayScrollbarsComponent,
+  type OverlayScrollbarsComponentRef,
+} from "overlayscrollbars-react"
+import type { OverlayScrollbarsComponentProps } from "overlayscrollbars-react"
 
-import { cn } from "@/lib/utils"
+type ScrollAreaProps = {
+  children: React.ReactNode
+  className?: string
+  x?: "scroll" | "hidden"
+  y?: "scroll" | "hidden"
+  onScroll?: (event: Event) => void
+  ref?: React.Ref<OverlayScrollbarsComponentRef>
+}
 
-function ScrollArea({
-  className,
+const BASE_OPTIONS: OverlayScrollbarsComponentProps["options"] = {
+  scrollbars: {
+    theme: "os-theme-codeg",
+    autoHide: "leave",
+    clickScroll: true,
+  },
+}
+
+export function ScrollArea({
   children,
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
-  return (
-    <ScrollAreaPrimitive.Root
-      data-slot="scroll-area"
-      className={cn("relative", className)}
-      {...props}
-    >
-      <ScrollAreaPrimitive.Viewport
-        data-slot="scroll-area-viewport"
-        className="focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1"
-      >
-        {children}
-      </ScrollAreaPrimitive.Viewport>
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
-  )
-}
-
-function ScrollBar({
   className,
-  orientation = "vertical",
-  ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
+  x = "hidden",
+  y = "scroll",
+  onScroll,
+  ref,
+}: ScrollAreaProps) {
+  const options = useMemo<OverlayScrollbarsComponentProps["options"]>(
+    () => ({
+      ...BASE_OPTIONS,
+      overflow: { x, y },
+    }),
+    [x, y]
+  )
+
+  const events = useMemo<OverlayScrollbarsComponentProps["events"]>(
+    () => (onScroll ? { scroll: (_instance, event) => onScroll(event) } : {}),
+    [onScroll]
+  )
+
   return (
-    <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot="scroll-area-scrollbar"
-      data-orientation={orientation}
-      orientation={orientation}
-      className={cn(
-        "data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent flex touch-none p-px transition-colors select-none",
-        className
-      )}
-      {...props}
+    <OverlayScrollbarsComponent
+      ref={ref}
+      className={className}
+      options={options}
+      events={events}
+      defer
     >
-      <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot="scroll-area-thumb"
-        className="rounded-full bg-border relative flex-1"
-      />
-    </ScrollAreaPrimitive.ScrollAreaScrollbar>
+      {children}
+    </OverlayScrollbarsComponent>
   )
 }
-
-export { ScrollArea, ScrollBar }

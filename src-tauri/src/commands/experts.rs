@@ -683,6 +683,47 @@ pub async fn experts_list() -> Result<Vec<ExpertListItem>, ExpertsError> {
 }
 
 #[cfg_attr(feature = "tauri-runtime", tauri::command)]
+pub async fn experts_list_for_agent(
+    agent_type: AgentType,
+) -> Result<Vec<ExpertListItem>, ExpertsError> {
+    let _ = skill_storage_spec(agent_type)
+        .ok_or(ExpertsError::UnsupportedAgent(agent_type))?;
+
+    let dirs = scoped_skill_dirs(agent_type, AgentSkillScope::Global, None)
+        .map_err(|_| ExpertsError::UnsupportedAgent(agent_type))?;
+
+    let meta_list = bundled_metadata().to_vec();
+    let manifest = load_manifest();
+    let mut out = Vec::new();
+
+    for meta in meta_list {
+        let central_path = expert_central_path(&meta.id);
+        let is_linked = dirs.iter().any(|dir| {
+            let candidate = dir.join(&meta.id);
+            classify_link(&candidate, &central_path) == ExpertLinkState::LinkedToCodeg
+        });
+        if !is_linked {
+            continue;
+        }
+
+        let installed_centrally = central_path.exists();
+        let user_modified = manifest
+            .experts
+            .get(&meta.id)
+            .map(|e| e.pending_user_review)
+            .unwrap_or(false);
+
+        out.push(ExpertListItem {
+            metadata: meta,
+            installed_centrally,
+            user_modified,
+            central_path: central_path.to_string_lossy().to_string(),
+        });
+    }
+    Ok(out)
+}
+
+#[cfg_attr(feature = "tauri-runtime", tauri::command)]
 pub async fn experts_get_install_status(
     expert_id: String,
 ) -> Result<Vec<ExpertInstallStatus>, ExpertsError> {
@@ -811,8 +852,8 @@ pub async fn experts_unlink_from_agent(
     let _guard = mutation_lock().lock().await;
 
     // Scan ALL global dirs for this agent to handle shared-dir agents
-    // (Codex and Cline both point at `~/.agents/skills/`). Remove the
-    // link wherever it is found.
+    // (Codex, Gemini and Cline all also point at `~/.agents/skills/`).
+    // Remove the link wherever it is found.
     let dirs = scoped_skill_dirs(agent_type, AgentSkillScope::Global, None)
         .map_err(|_| ExpertsError::UnsupportedAgent(agent_type))?;
 

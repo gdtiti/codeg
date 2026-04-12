@@ -111,7 +111,35 @@
       "light": "淺色",
       "dark": "深色",
       "unknown": "未知"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "主題顏色",
+      "sectionDescription": "選擇按鈕、強調色和高亮使用的色調。",
+      "current": "目前顏色：{color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "視窗縮放",
+      "sectionDescription": "整體放大或縮小介面，立即生效，依裝置分別儲存。",
+      "placeholder": "請選擇縮放檔位",
+      "default": "預設",
+      "current": "目前縮放：{zoom}%"
+    },
+    "resetToDefaults": "恢復預設",
+    "resetHint": "將主題顏色和視窗縮放恢復到預設值。"
   },
   "SystemSettings": {
     "loading": "載入中...",
@@ -144,6 +172,7 @@
     "checking": "檢查中...",
     "checkUpdate": "檢查更新",
     "updating": "升級中...",
+    "downloading": "下載中...",
     "upgradeTo": "升級到 v{version}",
     "foundUpdate": "發現新版本 v{version}",
     "alreadyLatest": "目前已是最新版本",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "選擇 Reasoning Effort",
       "enableWebsocket": "啟用 WebSocket",
       "enableWebsocketAria": "Codex Provider 啟用 WebSocket",
+      "enableSkills": "啟用 Skills",
+      "enableSkillsAria": "Codex 啟用 Skills",
       "authJsonNative": "auth.json（原生）",
       "configTomlNative": "config.toml（原生）"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "配置 Cline API 提供商和憑證。設定將儲存到 ~/.cline/data/。"
+    },
+    "opencodePlugins": {
+      "title": "OpenCode 外掛",
+      "declared": "已宣告的外掛",
+      "noPlugins": "opencode.json 中未宣告任何外掛",
+      "status": {
+        "installed": "已安裝",
+        "missing": "未安裝"
+      },
+      "installAll": "安裝全部缺失外掛",
+      "pinVersions": "固定 @latest 版本",
+      "install": "安裝",
+      "uninstall": "解除安裝",
+      "refresh": "重新整理",
+      "success": "所有外掛安裝成功",
+      "failed": "外掛操作失敗"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "已連線",
         "connecting": "連線中...",
-        "downloading": "下載中...",
         "prompting": "回應中...",
         "error": "連線異常",
         "disconnected": "未連線",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} 目前平台不可用。",
           "sdkMissing": "{agent} SDK 尚未安裝"
         },
+        "backendErrors": {
+          "initializeTimeout": "{agent} 連線交握逾時（60 秒未回應），請前往設定頁面檢查智能體與網路設定。",
+          "processExited": "{agent} 處理程序意外結束。",
+          "spawnFailed": "啟動 {agent} 失敗：{message}",
+          "downloadFailed": "{agent} 下載失敗：{message}"
+        },
         "unableReadAgentConfig": "無法讀取 Agent 設定：{message}",
-        "autoLinkFailedTitle": "{agent} 自動連結失敗",
-        "preflightCheckFailedDefault": "預檢查未通過，請檢查 Agent 設定。",
-        "preflightFailedTitle": "{agent} 預檢查失敗",
-        "autoLinkPreflightFailed": "自動連結預檢查失敗：{message}",
         "connectFailedTitle": "{agent} 連線失敗",
         "toolFallbackTitle": "工具",
         "eventErrorTitle": "Agent 錯誤",

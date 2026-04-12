@@ -1,11 +1,30 @@
 use std::collections::HashMap;
 use std::sync::Mutex;
+#[cfg(target_os = "macos")]
+use std::sync::atomic::{AtomicU32, Ordering};
 
 use tauri::{AppHandle, Manager, WebviewUrl, WebviewWindowBuilder};
 
 use crate::app_error::AppCommandError;
 use crate::db::AppDatabase;
 use crate::models::FolderHistoryEntry;
+
+/// Base traffic-light position (logical px) at 100 % zoom.
+#[cfg(target_os = "macos")]
+const TRAFFIC_LIGHT_X: f64 = 12.0;
+#[cfg(target_os = "macos")]
+const TRAFFIC_LIGHT_Y: f64 = 18.0;
+
+#[cfg(target_os = "macos")]
+static CURRENT_ZOOM: AtomicU32 = AtomicU32::new(100);
+
+#[cfg(target_os = "macos")]
+fn traffic_light_position() -> tauri::LogicalPosition<f64> {
+    let zoom = CURRENT_ZOOM.load(Ordering::Relaxed) as f64;
+    // Only Y scales with zoom: overlay content shifts vertically with
+    // font-size changes, but the horizontal inset remains constant.
+    tauri::LogicalPosition::new(TRAFFIC_LIGHT_X, TRAFFIC_LIGHT_Y * zoom / 100.0)
+}
 
 pub struct SettingsWindowState {
     owner_window_label: Mutex<Option<String>>,
@@ -31,6 +50,7 @@ where
         builder
             .hidden_title(true)
             .title_bar_style(tauri::TitleBarStyle::Overlay)
+            .traffic_light_position(traffic_light_position())
     }
 
     #[cfg(target_os = "windows")]
@@ -51,6 +71,11 @@ fn ensure_windows_undecorated(window: &tauri::WebviewWindow) {
 
 #[cfg(not(target_os = "windows"))]
 fn ensure_windows_undecorated(_window: &tauri::WebviewWindow) {}
+
+/// Apply platform-specific post-creation setup.
+pub(crate) fn post_window_setup(window: &tauri::WebviewWindow) {
+    ensure_windows_undecorated(window);
+}
 
 impl SettingsWindowState {
     pub fn new() -> Self {
@@ -109,7 +134,7 @@ fn resolve_settings_route(section: Option<&str>) -> &'static str {
         Some("skills") => "settings/skills",
         Some("shortcuts") => "settings/shortcuts",
         Some("system") => "settings/system",
-        _ => "settings/system",
+        _ => "settings/appearance",
     }
 }
 
@@ -202,7 +227,7 @@ pub async fn open_folder_window(
 
     let label = folder_window_label(entry.id);
     if let Some(existing) = app.get_webview_window(&label) {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         let _ = existing.unminimize();
         existing
             .set_focus()
@@ -224,7 +249,7 @@ pub async fn open_folder_window(
     let folder_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open folder window", e.to_string()))?;
-    ensure_windows_undecorated(&folder_window);
+    post_window_setup(&folder_window);
 
     // Close welcome and project-boot windows
     if let Some(w) = app.get_webview_window("welcome") {
@@ -280,7 +305,7 @@ pub async fn open_commit_window(
     let commit_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open commit window", e.to_string()))?;
-    ensure_windows_undecorated(&commit_window);
+    post_window_setup(&commit_window);
     if let Some(owner_window) = app.get_webview_window(&owner_label) {
         if let Err(err) = owner_window.set_enabled(false) {
             let _ = commit_window.close();
@@ -309,7 +334,7 @@ pub async fn open_settings_window(
 ) -> Result<(), AppCommandError> {
     let target_route = resolve_settings_target(section.as_deref(), agent_type.as_deref());
     if let Some(existing) = app.get_webview_window("settings") {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         if section.is_some() || agent_type.is_some() {
             let target_path = format!("/{target_route}");
             let target_json = serde_json::to_string(&target_path).map_err(|e| {
@@ -337,7 +362,7 @@ pub async fn open_settings_window(
     let settings_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open settings window", e.to_string()))?;
-    ensure_windows_undecorated(&settings_window);
+    post_window_setup(&settings_window);
 
     state.set_owner(owner_label);
     settings_window
@@ -442,7 +467,7 @@ pub async fn open_merge_window(
     let merge_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open merge window", e.to_string()))?;
-    ensure_windows_undecorated(&merge_window);
+    post_window_setup(&merge_window);
     if let Some(owner_window) = app.get_webview_window(&owner_label) {
         if let Err(err) = owner_window.set_enabled(false) {
             let _ = merge_window.close();
@@ -522,7 +547,7 @@ pub async fn cleanup_dangling_merge(app: &AppHandle, merge_window_label: &str) {
 
 pub fn open_welcome_window(app: &AppHandle) -> Result<(), AppCommandError> {
     if let Some(existing) = app.get_webview_window("welcome") {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         return Ok(());
     }
     let url = WebviewUrl::App("welcome".into());
@@ -534,7 +559,7 @@ pub fn open_welcome_window(app: &AppHandle) -> Result<(), AppCommandError> {
     let welcome_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open welcome window", e.to_string()))?;
-    ensure_windows_undecorated(&welcome_window);
+    post_window_setup(&welcome_window);
     Ok(())
 }
 
@@ -548,7 +573,7 @@ pub async fn open_stash_window(
     let label = format!("stash-{folder_id}");
 
     if let Some(existing) = app.get_webview_window(&label) {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         let _ = existing.unminimize();
         existing
             .set_focus()
@@ -573,7 +598,7 @@ pub async fn open_stash_window(
     let stash_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open stash window", e.to_string()))?;
-    ensure_windows_undecorated(&stash_window);
+    post_window_setup(&stash_window);
 
     Ok(())
 }
@@ -588,7 +613,7 @@ pub async fn open_push_window(
     let label = format!("push-{folder_id}");
 
     if let Some(existing) = app.get_webview_window(&label) {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         let _ = existing.unminimize();
         existing
             .set_focus()
@@ -613,7 +638,7 @@ pub async fn open_push_window(
     let push_window = apply_platform_window_style(builder)
         .build()
         .map_err(|e| AppCommandError::window("Failed to open push window", e.to_string()))?;
-    ensure_windows_undecorated(&push_window);
+    post_window_setup(&push_window);
 
     Ok(())
 }
@@ -625,7 +650,7 @@ pub async fn open_project_boot_window(
     source: Option<String>,
 ) -> Result<(), AppCommandError> {
     if let Some(existing) = app.get_webview_window("project-boot") {
-        ensure_windows_undecorated(&existing);
+        post_window_setup(&existing);
         let _ = existing.unminimize();
         existing.set_focus().map_err(|e| {
             AppCommandError::window("Failed to focus project boot window", e.to_string())
@@ -650,7 +675,7 @@ pub async fn open_project_boot_window(
         .map_err(|e| {
             AppCommandError::window("Failed to open project boot window", e.to_string())
         })?;
-    ensure_windows_undecorated(&window);
+    post_window_setup(&window);
 
     // Close welcome if opened from welcome
     if source.as_deref() == Some("welcome") {
@@ -661,3 +686,15 @@ pub async fn open_project_boot_window(
 
     Ok(())
 }
+
+/// Store the current zoom level so that newly created windows use the correct
+/// traffic-light position.  Existing windows are NOT repositioned at runtime.
+#[cfg(feature = "tauri-runtime")]
+#[cfg_attr(feature = "tauri-runtime", tauri::command)]
+pub async fn update_traffic_light_position(app: AppHandle, zoom: f64) -> Result<(), AppCommandError> {
+    #[cfg(target_os = "macos")]
+    CURRENT_ZOOM.store(zoom.clamp(50.0, 300.0) as u32, Ordering::Relaxed);
+    let _ = (app, zoom);
+    Ok(())
+}
+

@@ -172,9 +172,10 @@ export async function acpClearBinaryCache(agentType: AgentType): Promise<void> {
 }
 
 export async function acpDownloadAgentBinary(
-  agentType: AgentType
+  agentType: AgentType,
+  taskId: string
 ): Promise<void> {
-  return invoke("acp_download_agent_binary", { agentType })
+  return invoke("acp_download_agent_binary", { agentType, taskId })
 }
 
 export async function acpDetectAgentLocalVersion(
@@ -185,16 +186,21 @@ export async function acpDetectAgentLocalVersion(
 
 export async function acpPrepareNpxAgent(
   agentType: AgentType,
-  registryVersion?: string | null
+  registryVersion: string | null | undefined,
+  taskId: string
 ): Promise<string> {
   return invoke("acp_prepare_npx_agent", {
     agentType,
     registryVersion: registryVersion ?? null,
+    taskId,
   })
 }
 
-export async function acpUninstallAgent(agentType: AgentType): Promise<void> {
-  return invoke("acp_uninstall_agent", { agentType })
+export async function acpUninstallAgent(
+  agentType: AgentType,
+  taskId: string
+): Promise<void> {
+  return invoke("acp_uninstall_agent", { agentType, taskId })
 }
 
 export async function acpUpdateAgentPreferences(
@@ -440,6 +446,12 @@ export async function mcpRemoveServer(
     serverId,
     apps: apps ?? null,
   })
+}
+
+// Appearance / window chrome
+
+export async function updateTrafficLightPosition(zoom: number): Promise<void> {
+  return invoke("update_traffic_light_position", { zoom: zoom as number })
 }
 
 // Folder history commands

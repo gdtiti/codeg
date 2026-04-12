@@ -1,5 +1,6 @@
 import type { ReactNode } from "react"
 import type {
+  AgentType,
   ConnectionStatus,
   PromptCapabilitiesInfo,
   PromptDraft,
@@ -38,6 +39,7 @@ interface ConversationShellProps {
   selectedModeId?: string | null
   onModeChange?: (modeId: string) => void
   onConfigOptionChange?: (configId: string, valueId: string) => void
+  agentType?: AgentType | null
   availableCommands?: AvailableCommandInfo[] | null
   attachmentTabId?: string | null
   draftStorageKey?: string | null
@@ -78,6 +80,7 @@ export function ConversationShell({
   selectedModeId,
   onModeChange,
   onConfigOptionChange,
+  agentType,
   availableCommands,
   attachmentTabId,
   draftStorageKey,
@@ -123,6 +126,7 @@ export function ConversationShell({
           selectedModeId={selectedModeId}
           onModeChange={onModeChange}
           onConfigOptionChange={onConfigOptionChange}
+          agentType={agentType}
           availableCommands={availableCommands}
           attachmentTabId={attachmentTabId}
           draftStorageKey={draftStorageKey}

@@ -188,7 +188,7 @@ pub async fn open_settings_window(
         Some("skills") => "settings/skills",
         Some("shortcuts") => "settings/shortcuts",
         Some("system") => "settings/system",
-        _ => "settings/system",
+        _ => "settings/appearance",
     };
 
     let path = if route == "settings/agents" {

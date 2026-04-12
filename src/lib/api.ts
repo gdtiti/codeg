@@ -60,6 +60,7 @@ import type {
   ChannelStatusInfo,
   ChatChannelMessageLog,
   ModelProviderInfo,
+  PluginCheckSummary,
 } from "./types"
 
 export async function listConversations(params?: {
@@ -183,9 +184,10 @@ export async function acpClearBinaryCache(agentType: AgentType): Promise<void> {
 }
 
 export async function acpDownloadAgentBinary(
-  agentType: AgentType
+  agentType: AgentType,
+  taskId: string
 ): Promise<void> {
-  return getTransport().call("acp_download_agent_binary", { agentType })
+  return getTransport().call("acp_download_agent_binary", { agentType, taskId })
 }
 
 export async function acpDetectAgentLocalVersion(
@@ -196,16 +198,21 @@ export async function acpDetectAgentLocalVersion(
 
 export async function acpPrepareNpxAgent(
   agentType: AgentType,
-  registryVersion?: string | null
+  registryVersion: string | null | undefined,
+  taskId: string
 ): Promise<string> {
   return getTransport().call("acp_prepare_npx_agent", {
     agentType,
     registryVersion: registryVersion ?? null,
+    taskId,
   })
 }
 
-export async function acpUninstallAgent(agentType: AgentType): Promise<void> {
-  return getTransport().call("acp_uninstall_agent", { agentType })
+export async function acpUninstallAgent(
+  agentType: AgentType,
+  taskId: string
+): Promise<void> {
+  return getTransport().call("acp_uninstall_agent", { agentType, taskId })
 }
 
 export async function acpUpdateAgentPreferences(
@@ -278,6 +285,26 @@ export async function acpPreflight(
   })
 }
 
+export async function opencodeListPlugins(): Promise<PluginCheckSummary> {
+  return getTransport().call("opencode_list_plugins", {})
+}
+
+export async function opencodeInstallPlugins(
+  taskId: string,
+  names?: string[] | null
+): Promise<void> {
+  return getTransport().call("opencode_install_plugins", {
+    names: names ?? null,
+    taskId,
+  })
+}
+
+export async function opencodeUninstallPlugin(
+  name: string
+): Promise<PluginCheckSummary> {
+  return getTransport().call("opencode_uninstall_plugin", { name })
+}
+
 export async function acpListAgentSkills(params: {
   agentType: AgentType
   workspacePath?: string | null
@@ -338,6 +365,12 @@ export async function acpDeleteAgentSkill(params: {
 
 export async function expertsList(): Promise<ExpertListItem[]> {
   return getTransport().call("experts_list")
+}
+
+export async function expertsListForAgent(
+  agentType: AgentType
+): Promise<ExpertListItem[]> {
+  return getTransport().call("experts_list_for_agent", { agentType })
 }
 
 export async function expertsGetInstallStatus(

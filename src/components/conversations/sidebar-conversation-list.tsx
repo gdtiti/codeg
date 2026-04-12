@@ -28,6 +28,7 @@ import { STATUS_ORDER, STATUS_COLORS } from "@/lib/types"
 import { SidebarConversationCard } from "./sidebar-conversation-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -204,8 +205,6 @@ export function SidebarConversationList({
     completed: false,
     cancelled: false,
   })
-
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const scrollToActiveRef = useRef<() => void>(() => {})
   const pendingScrollRef = useRef(false)
@@ -479,12 +478,8 @@ export function SidebarConversationList({
       ) : (
         <ContextMenu>
           <ContextMenuTrigger asChild>
-            <div
-              ref={scrollContainerRef}
-              className={cn(
-                "flex-1 min-h-0 overflow-y-auto scrollbar-thin",
-                "[overflow-anchor:none]"
-              )}
+            <ScrollArea
+              className={cn("flex-1 min-h-0 px-2", "[overflow-anchor:none]")}
             >
               <Virtualizer ref={virtualizerRef} itemSize={CARD_HEIGHT}>
                 {flatItems.map((item) => {
@@ -537,7 +532,7 @@ export function SidebarConversationList({
                   )
                 })}
               </Virtualizer>
-            </div>
+            </ScrollArea>
           </ContextMenuTrigger>
           <ContextMenuContent>
             <ContextMenuItem onSelect={handleNewConversation}>

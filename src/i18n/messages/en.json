@@ -111,7 +111,35 @@
       "light": "Light",
       "dark": "Dark",
       "unknown": "--"
-    }
+    },
+    "themeColor": {
+      "sectionTitle": "Theme color",
+      "sectionDescription": "Pick a color palette for accents, buttons, and highlights.",
+      "current": "Current color: {color}",
+      "options": {
+        "neutral": "Neutral",
+        "zinc": "Zinc",
+        "slate": "Slate",
+        "stone": "Stone",
+        "gray": "Gray",
+        "red": "Red",
+        "rose": "Rose",
+        "orange": "Orange",
+        "green": "Green",
+        "blue": "Blue",
+        "yellow": "Yellow",
+        "violet": "Violet"
+      }
+    },
+    "zoomLevel": {
+      "sectionTitle": "Window zoom",
+      "sectionDescription": "Scale the entire interface. Applies immediately and persists per device.",
+      "placeholder": "Select zoom level",
+      "default": "Default",
+      "current": "Current zoom: {zoom}%"
+    },
+    "resetToDefaults": "Reset to defaults",
+    "resetHint": "Reset theme color and window zoom to defaults."
   },
   "SystemSettings": {
     "loading": "Loading...",
@@ -144,6 +172,7 @@
     "checking": "Checking...",
     "checkUpdate": "Check for updates",
     "updating": "Installing...",
+    "downloading": "Downloading...",
     "upgradeTo": "Upgrade to v{version}",
     "foundUpdate": "New version v{version} found",
     "alreadyLatest": "You're on the latest version",
@@ -515,6 +544,8 @@
       "selectReasoningEffort": "Select Reasoning Effort",
       "enableWebsocket": "Enable WebSocket",
       "enableWebsocketAria": "Enable WebSocket for Codex Provider",
+      "enableSkills": "Enable Skills",
+      "enableSkillsAria": "Enable Skills for Codex",
       "authJsonNative": "auth.json (native)",
       "configTomlNative": "config.toml (native)"
     },
@@ -655,6 +686,22 @@
     },
     "cline": {
       "configDescription": "Configure Cline API provider and credentials. Settings are saved to ~/.cline/data/."
+    },
+    "opencodePlugins": {
+      "title": "OpenCode Plugins",
+      "declared": "Declared Plugins",
+      "noPlugins": "No plugins declared.",
+      "status": {
+        "installed": "Installed",
+        "missing": "Missing"
+      },
+      "installAll": "Install All Missing",
+      "pinVersions": "Pin @latest Versions",
+      "install": "Install",
+      "uninstall": "Uninstall",
+      "refresh": "Refresh",
+      "success": "All plugins installed successfully.",
+      "failed": "Installation failed"
     }
   },
   "SettingsPages": {
@@ -821,7 +868,6 @@
       "connection": {
         "connected": "Connected",
         "connecting": "Connecting...",
-        "downloading": "Downloading...",
         "prompting": "Responding...",
         "error": "Connection error",
         "disconnected": "Disconnected",
@@ -1392,11 +1438,13 @@
           "unavailable": "{agent} is unavailable on the current platform.",
           "sdkMissing": "{agent} SDK is not installed"
         },
+        "backendErrors": {
+          "initializeTimeout": "{agent} connection handshake timed out after 60 seconds. Please open Settings to check Agent configuration and network settings.",
+          "processExited": "{agent} process exited unexpectedly.",
+          "spawnFailed": "Failed to start {agent}: {message}",
+          "downloadFailed": "{agent} download failed: {message}"
+        },
         "unableReadAgentConfig": "Unable to read Agent config: {message}",
-        "autoLinkFailedTitle": "{agent} auto-link failed",
-        "preflightCheckFailedDefault": "Preflight checks failed. Check Agent settings.",
-        "preflightFailedTitle": "{agent} preflight failed",
-        "autoLinkPreflightFailed": "Auto-link preflight failed: {message}",
         "connectFailedTitle": "{agent} connection failed",
         "toolFallbackTitle": "Tool",
         "eventErrorTitle": "Agent Error",

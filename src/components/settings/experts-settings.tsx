@@ -46,6 +46,7 @@ import {
   expertsUnlinkFromAgent,
   openFolderWindow,
 } from "@/lib/api"
+import { invalidateAgentExpertsCache } from "@/hooks/use-agent-experts"
 import type {
   AcpAgentInfo,
   AgentType,
@@ -336,6 +337,7 @@ export function ExpertsSettings() {
         if (enable) {
           const next = await expertsLinkToAgent({ expertId, agentType })
           setStatuses((prev) => ({ ...prev, [agentType]: next }))
+          invalidateAgentExpertsCache(agentType)
           toast.success(t("toasts.enabled"))
         } else {
           await expertsUnlinkFromAgent({ expertId, agentType })
@@ -346,6 +348,7 @@ export function ExpertsSettings() {
             map[entry.agentType] = entry
           }
           setStatuses(map)
+          invalidateAgentExpertsCache(agentType)
           toast.success(t("toasts.disabled"))
         }
       } catch (err) {

@@ -125,7 +125,7 @@ function normalizeErrorMessage(error: unknown): string {
   return String(error)
 }
 
-function isExpectedAutoLinkError(error: unknown): boolean {
+function isExpectedConnectError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false
   return (error as { alerted?: unknown }).alerted === true
 }
@@ -310,8 +310,7 @@ const ConversationTabView = memo(function ConversationTabView({
   useEffect(() => {
     connStatusRef.current = connStatus
   }, [connStatus])
-  const isConnecting =
-    connStatus === "connecting" || connStatus === "downloading"
+  const isConnecting = connStatus === "connecting"
   const connectionModes = useMemo(
     () => conn.modes?.available_modes ?? [],
     [conn.modes?.available_modes]
@@ -756,15 +755,13 @@ const ConversationTabView = memo(function ConversationTabView({
       const s = connStatusRef.current
       const doConnect = () => {
         if (!workingDirForConnection) return
-        connConnect(nextAgentType, workingDirForConnection, undefined, {
-          source: "auto_link",
-        })
+        connConnect(nextAgentType, workingDirForConnection, undefined)
           .then(() => {
             setAgentConnectError(null)
           })
           .catch((e) => {
             setAgentConnectError(normalizeErrorMessage(e))
-            if (!isExpectedAutoLinkError(e)) {
+            if (!isExpectedConnectError(e)) {
               console.error("[ConversationTabView] switch agent:", e)
             }
           })
@@ -895,6 +892,7 @@ const ConversationTabView = memo(function ConversationTabView({
       selectedModeId={selectedModeId}
       onModeChange={handleModeChange}
       onConfigOptionChange={handleSetConfigOption}
+      agentType={selectedAgent}
       availableCommands={connectionCommands}
       attachmentTabId={tabId}
       draftStorageKey={draftStorageKey}
@@ -966,6 +964,7 @@ const ConversationTabView = memo(function ConversationTabView({
               selectedModeId={selectedModeId}
               onModeChange={handleModeChange}
               onConfigOptionChange={handleSetConfigOption}
+              agentType={selectedAgent}
               availableCommands={connectionCommands}
               attachmentTabId={tabId}
               draftStorageKey={draftStorageKey}

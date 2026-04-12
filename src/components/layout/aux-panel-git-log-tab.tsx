@@ -2,7 +2,6 @@
 
 import {
   type ReactElement,
-  type UIEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -89,6 +88,7 @@ import {
 import type { GitBranchList, GitLogEntry, GitLogFileChange } from "@/lib/types"
 import { toast } from "sonner"
 import { toErrorMessage } from "@/lib/app-error"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 function formatRelativeTime(
   dateStr: string,
@@ -896,14 +896,15 @@ export function GitLogTab() {
     }
   }, [folder, refreshBranches, fetchLog])
 
-  const handleScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
-    const nextScrolled = e.currentTarget.scrollTop > 0
+  const handleScroll = useCallback((e: Event) => {
+    const target = e.target as HTMLElement
+    const nextScrolled = target.scrollTop > 0
     setScrolled((prev) => (prev === nextScrolled ? prev : nextScrolled))
   }, [])
 
   if (loading) {
     return (
-      <div className="flex flex-col h-full overflow-y-auto scrollbar-thin px-1 py-3">
+      <ScrollArea className="h-full px-3 py-3">
         {hasBranches && (
           <BranchSelector
             branchList={branchList}
@@ -923,13 +924,13 @@ export function GitLogTab() {
             </div>
           ))}
         </div>
-      </div>
+      </ScrollArea>
     )
   }
 
   if (error) {
     return (
-      <div className="flex flex-col h-full overflow-y-auto scrollbar-thin px-1 py-3">
+      <ScrollArea className="h-full px-3 py-3">
         {hasBranches && (
           <BranchSelector
             branchList={branchList}
@@ -953,29 +954,31 @@ export function GitLogTab() {
             {t("retry")}
           </Button>
         </div>
-      </div>
+      </ScrollArea>
     )
   }
 
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col h-full overflow-y-auto scrollbar-thin px-1 py-3">
-        {hasBranches && (
-          <BranchSelector
-            branchList={branchList}
-            currentBranch={currentBranch}
-            selectedBranch={selectedBranch}
-            onBranchChange={handleBranchChange}
-            onRefresh={handleRefresh}
-            refreshing={loading || refreshing}
-          />
-        )}
-        <div className="flex items-center justify-center flex-1 p-4">
-          <p className="text-xs text-muted-foreground text-center">
-            {t("noCommitsFound")}
-          </p>
+      <ScrollArea className="h-full px-3 py-3">
+        <div className="flex flex-col min-h-full">
+          {hasBranches && (
+            <BranchSelector
+              branchList={branchList}
+              currentBranch={currentBranch}
+              selectedBranch={selectedBranch}
+              onBranchChange={handleBranchChange}
+              onRefresh={handleRefresh}
+              refreshing={loading || refreshing}
+            />
+          )}
+          <div className="flex items-center justify-center flex-1 p-4">
+            <p className="text-xs text-muted-foreground text-center">
+              {t("noCommitsFound")}
+            </p>
+          </div>
         </div>
-      </div>
+      </ScrollArea>
     )
   }
 
@@ -983,256 +986,258 @@ export function GitLogTab() {
     <div className="flex flex-col h-full">
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
+          <ScrollArea
             onScroll={handleScroll}
-            className="flex-1 min-h-0 overflow-y-auto scrollbar-thin px-1 py-3 space-y-3"
+            className="flex-1 min-h-0 px-3 py-3"
           >
-            {hasBranches && (
-              <div
-                className={`sticky top-0 z-10 rounded-full bg-sidebar/85 supports-[backdrop-filter]:bg-sidebar/70 backdrop-blur ${scrolled ? "p-2 shadow-md" : "p-0"}`}
-              >
-                <BranchSelector
-                  branchList={branchList}
-                  currentBranch={currentBranch}
-                  selectedBranch={selectedBranch}
-                  onBranchChange={handleBranchChange}
-                  onRefresh={handleRefresh}
-                  refreshing={loading || refreshing}
-                />
-              </div>
-            )}
-            {entries.map((entry) => {
-              const commitKey = entry.full_hash
-              const commitDate = parseDate(entry.date)
-              const pushStatus = getPushStatusMeta(
-                entry.pushed,
-                pushStatusLabels
-              )
-              const PushStatusIcon = pushStatus.icon
-              const commitBranches = branchesByCommit[commitKey]
-              const isBranchLoading = !!branchesLoading[commitKey]
-              const branchError = branchesError[commitKey]
-              const isOpen = !!openByCommit[commitKey]
+            <div className="space-y-3">
+              {hasBranches && (
+                <div
+                  className={`sticky top-0 z-10 rounded-full bg-sidebar/85 supports-[backdrop-filter]:bg-sidebar/70 backdrop-blur ${scrolled ? "p-2 shadow-md" : "p-0"}`}
+                >
+                  <BranchSelector
+                    branchList={branchList}
+                    currentBranch={currentBranch}
+                    selectedBranch={selectedBranch}
+                    onBranchChange={handleBranchChange}
+                    onRefresh={handleRefresh}
+                    refreshing={loading || refreshing}
+                  />
+                </div>
+              )}
+              {entries.map((entry) => {
+                const commitKey = entry.full_hash
+                const commitDate = parseDate(entry.date)
+                const pushStatus = getPushStatusMeta(
+                  entry.pushed,
+                  pushStatusLabels
+                )
+                const PushStatusIcon = pushStatus.icon
+                const commitBranches = branchesByCommit[commitKey]
+                const isBranchLoading = !!branchesLoading[commitKey]
+                const branchError = branchesError[commitKey]
+                const isOpen = !!openByCommit[commitKey]
 
-              return (
-                <ContextMenu key={entry.full_hash}>
-                  <ContextMenuTrigger asChild>
-                    <div>
-                      <Commit
-                        onOpenChange={(open) => {
-                          setOpenByCommit((prev) => ({
-                            ...prev,
-                            [commitKey]: open,
-                          }))
-                          if (open) {
-                            void fetchCommitBranches(commitKey)
-                          }
-                        }}
-                        open={isOpen}
-                      >
-                        <CommitHeader>
-                          <CommitInfo className="min-w-0">
-                            <CommitMessage className="line-clamp-1 leading-snug">
-                              {entry.message}
-                            </CommitMessage>
-                            <CommitMetadata className="mt-1 min-w-0 flex items-center gap-1.5">
-                              <span
-                                className="inline-flex shrink-0"
-                                title={pushStatus.label}
-                                aria-label={pushStatus.label}
-                              >
-                                <PushStatusIcon
-                                  className={pushStatus.className}
-                                  size={12}
-                                />
-                              </span>
-                              <span className="truncate">{entry.author}</span>
-                              <CommitTimestamp
-                                className="shrink-0"
-                                date={commitDate ?? new Date()}
-                              >
-                                {formatRelativeTime(entry.date, t)}
-                              </CommitTimestamp>
-                              <CommitHash className="text-primary/70">
-                                {entry.hash}
-                              </CommitHash>
-                            </CommitMetadata>
-                          </CommitInfo>
-                          <CommitActions className="shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                              onClick={() => {
-                                void openCommitDiff(
-                                  entry.full_hash,
-                                  undefined,
-                                  entry.message
-                                )
-                              }}
-                              title={tCommon("viewDiff")}
-                              aria-label={t("viewCommitDiffAria", {
-                                hash: entry.hash,
-                              })}
-                            >
-                              <GitCompare size={14} />
-                            </Button>
-                          </CommitActions>
-                        </CommitHeader>
-                        <CommitContent>
-                          <div className="space-y-3">
-                            <div className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs">
-                              <span className="text-muted-foreground">
-                                {t("hash")}
-                              </span>
-                              <span className="group/hash flex items-center gap-1 min-w-0">
-                                <code
-                                  className="block min-w-0 flex-1 truncate font-mono"
-                                  title={entry.full_hash}
-                                >
-                                  {entry.full_hash}
-                                </code>
-                                <CommitCopyButton
-                                  aria-label={t("copyFullCommitHashAria", {
-                                    hash: entry.full_hash,
-                                  })}
-                                  className="size-5 shrink-0 opacity-0 transition-opacity group-hover/hash:opacity-100 group-focus-within/hash:opacity-100"
-                                  hash={entry.full_hash}
-                                  title={t("copyHash")}
-                                />
-                              </span>
-                              <span className="text-muted-foreground">
-                                {t("author")}
-                              </span>
-                              <span className="min-w-0 flex items-center gap-1">
-                                <span className="min-w-0 truncate">
-                                  {entry.author}
-                                </span>
-                                <span className="shrink-0 text-muted-foreground">
-                                  ·
-                                </span>
-                                <time
-                                  className="shrink-0"
-                                  dateTime={commitDate?.toISOString()}
-                                >
-                                  {commitDate
-                                    ? commitDate.toLocaleString()
-                                    : entry.date}
-                                </time>
-                              </span>
-                            </div>
-                            <div className="group/msg relative rounded-lg border border-border/60 bg-muted/20 p-2.5">
-                              <p className="text-xs whitespace-pre-wrap break-words pr-6">
+                return (
+                  <ContextMenu key={entry.full_hash}>
+                    <ContextMenuTrigger asChild>
+                      <div>
+                        <Commit
+                          onOpenChange={(open) => {
+                            setOpenByCommit((prev) => ({
+                              ...prev,
+                              [commitKey]: open,
+                            }))
+                            if (open) {
+                              void fetchCommitBranches(commitKey)
+                            }
+                          }}
+                          open={isOpen}
+                        >
+                          <CommitHeader>
+                            <CommitInfo className="min-w-0">
+                              <CommitMessage className="line-clamp-1 leading-snug">
                                 {entry.message}
-                              </p>
-                              <CommitCopyButton
-                                className="absolute top-1.5 right-1.5 size-5 opacity-0 transition-opacity group-hover/msg:opacity-100 group-focus-within/msg:opacity-100"
-                                hash={entry.message}
-                                title={t("copyMessage")}
-                              />
-                            </div>
-                            {entry.files.length === 0 ? (
-                              <div className="space-y-1">
-                                <p className="text-[11px] text-muted-foreground">
-                                  {t("filesTitle")}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {t("noFileChangeDetails")}
-                                </p>
+                              </CommitMessage>
+                              <CommitMetadata className="mt-1 min-w-0 flex items-center gap-1.5">
+                                <span
+                                  className="inline-flex shrink-0"
+                                  title={pushStatus.label}
+                                  aria-label={pushStatus.label}
+                                >
+                                  <PushStatusIcon
+                                    className={pushStatus.className}
+                                    size={12}
+                                  />
+                                </span>
+                                <span className="truncate">{entry.author}</span>
+                                <CommitTimestamp
+                                  className="shrink-0"
+                                  date={commitDate ?? new Date()}
+                                >
+                                  {formatRelativeTime(entry.date, t)}
+                                </CommitTimestamp>
+                                <CommitHash className="text-primary/70">
+                                  {entry.hash}
+                                </CommitHash>
+                              </CommitMetadata>
+                            </CommitInfo>
+                            <CommitActions className="shrink-0">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                onClick={() => {
+                                  void openCommitDiff(
+                                    entry.full_hash,
+                                    undefined,
+                                    entry.message
+                                  )
+                                }}
+                                title={tCommon("viewDiff")}
+                                aria-label={t("viewCommitDiffAria", {
+                                  hash: entry.hash,
+                                })}
+                              >
+                                <GitCompare size={14} />
+                              </Button>
+                            </CommitActions>
+                          </CommitHeader>
+                          <CommitContent>
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-x-2 gap-y-1 text-xs">
+                                <span className="text-muted-foreground">
+                                  {t("hash")}
+                                </span>
+                                <span className="group/hash flex items-center gap-1 min-w-0">
+                                  <code
+                                    className="block min-w-0 flex-1 truncate font-mono"
+                                    title={entry.full_hash}
+                                  >
+                                    {entry.full_hash}
+                                  </code>
+                                  <CommitCopyButton
+                                    aria-label={t("copyFullCommitHashAria", {
+                                      hash: entry.full_hash,
+                                    })}
+                                    className="size-5 shrink-0 opacity-0 transition-opacity group-hover/hash:opacity-100 group-focus-within/hash:opacity-100"
+                                    hash={entry.full_hash}
+                                    title={t("copyHash")}
+                                  />
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {t("author")}
+                                </span>
+                                <span className="min-w-0 flex items-center gap-1">
+                                  <span className="min-w-0 truncate">
+                                    {entry.author}
+                                  </span>
+                                  <span className="shrink-0 text-muted-foreground">
+                                    ·
+                                  </span>
+                                  <time
+                                    className="shrink-0"
+                                    dateTime={commitDate?.toISOString()}
+                                  >
+                                    {commitDate
+                                      ? commitDate.toLocaleString()
+                                      : entry.date}
+                                  </time>
+                                </span>
                               </div>
-                            ) : (
-                              <CommitFilesTree
-                                commitHash={entry.full_hash}
-                                files={entry.files}
-                                folderName={folderName}
-                                onOpenCommitDiff={openCommitDiff}
-                                onOpenFilePreview={openFilePreview}
-                              />
-                            )}
-                            <div className="pt-3 space-y-1">
-                              <p className="text-[11px] text-muted-foreground">
-                                {t("branchesTitle")}
-                              </p>
-                              {isBranchLoading ? (
-                                <p className="text-xs text-muted-foreground">
-                                  {t("loadingBranches")}
+                              <div className="group/msg relative rounded-lg border border-border/60 bg-muted/20 p-2.5">
+                                <p className="text-xs whitespace-pre-wrap break-words pr-6">
+                                  {entry.message}
                                 </p>
-                              ) : branchError ? (
-                                <p className="text-xs text-destructive">
-                                  {branchError}
-                                </p>
-                              ) : commitBranches &&
-                                commitBranches.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {commitBranches.map((branch) => (
-                                    <span
-                                      key={`${commitKey}-${branch}`}
-                                      className="rounded-md border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground"
-                                      title={branch}
-                                    >
-                                      {branch}
-                                    </span>
-                                  ))}
+                                <CommitCopyButton
+                                  className="absolute top-1.5 right-1.5 size-5 opacity-0 transition-opacity group-hover/msg:opacity-100 group-focus-within/msg:opacity-100"
+                                  hash={entry.message}
+                                  title={t("copyMessage")}
+                                />
+                              </div>
+                              {entry.files.length === 0 ? (
+                                <div className="space-y-1">
+                                  <p className="text-[11px] text-muted-foreground">
+                                    {t("filesTitle")}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("noFileChangeDetails")}
+                                  </p>
                                 </div>
                               ) : (
-                                <p className="text-xs text-muted-foreground">
-                                  {t("noContainingBranches")}
-                                </p>
+                                <CommitFilesTree
+                                  commitHash={entry.full_hash}
+                                  files={entry.files}
+                                  folderName={folderName}
+                                  onOpenCommitDiff={openCommitDiff}
+                                  onOpenFilePreview={openFilePreview}
+                                />
                               )}
+                              <div className="pt-3 space-y-1">
+                                <p className="text-[11px] text-muted-foreground">
+                                  {t("branchesTitle")}
+                                </p>
+                                {isBranchLoading ? (
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("loadingBranches")}
+                                  </p>
+                                ) : branchError ? (
+                                  <p className="text-xs text-destructive">
+                                    {branchError}
+                                  </p>
+                                ) : commitBranches &&
+                                  commitBranches.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1">
+                                    {commitBranches.map((branch) => (
+                                      <span
+                                        key={`${commitKey}-${branch}`}
+                                        className="rounded-md border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                                        title={branch}
+                                      >
+                                        {branch}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-muted-foreground">
+                                    {t("noContainingBranches")}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </CommitContent>
-                      </Commit>
-                    </div>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent>
-                    <ContextMenuItem
-                      onSelect={() => {
-                        handleOpenNewBranchDialog(entry)
-                      }}
-                    >
-                      <GitBranchPlus className="h-3.5 w-3.5" />
-                      {t("newBranch")}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onSelect={() => {
-                        void openCommitDiff(
-                          entry.full_hash,
-                          undefined,
-                          entry.message
-                        )
-                      }}
-                    >
-                      <GitCompare className="h-3.5 w-3.5" />
-                      {tCommon("viewDiff")}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onSelect={() => {
-                        void fetchLog()
-                      }}
-                    >
-                      <RefreshCw className="size-3.5" />
-                      {tCommon("refresh")}
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onSelect={() => {
-                        if (!folder) return
-                        openPushWindow(folder.id).catch((err) => {
-                          const msg = toErrorMessage(err)
-                          toast.error(t("toasts.openPushWindowFailed"), {
-                            description: msg,
+                          </CommitContent>
+                        </Commit>
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          handleOpenNewBranchDialog(entry)
+                        }}
+                      >
+                        <GitBranchPlus className="h-3.5 w-3.5" />
+                        {t("newBranch")}
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          void openCommitDiff(
+                            entry.full_hash,
+                            undefined,
+                            entry.message
+                          )
+                        }}
+                      >
+                        <GitCompare className="h-3.5 w-3.5" />
+                        {tCommon("viewDiff")}
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          void fetchLog()
+                        }}
+                      >
+                        <RefreshCw className="size-3.5" />
+                        {tCommon("refresh")}
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onSelect={() => {
+                          if (!folder) return
+                          openPushWindow(folder.id).catch((err) => {
+                            const msg = toErrorMessage(err)
+                            toast.error(t("toasts.openPushWindowFailed"), {
+                              description: msg,
+                            })
                           })
-                        })
-                      }}
-                    >
-                      <Upload className="size-3.5" />
-                      {tCommon("push")}
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
-              )
-            })}
-          </div>
+                        }}
+                      >
+                        <Upload className="size-3.5" />
+                        {tCommon("push")}
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                )
+              })}
+            </div>
+          </ScrollArea>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
